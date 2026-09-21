@@ -26,9 +26,11 @@
 
         .btn-principal { background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-light) 100%); color: white; border: none; border-radius: 14px; padding: 16px 20px; margin-bottom: 15px; font-size: 15px; font-weight: 600; width: 100%; cursor: pointer; box-shadow: 0 6px 15px rgba(26, 77, 46, 0.25); transition: transform 0.1s ease; }
         .btn-principal:active { transform: scale(0.97); }
+        .btn-principal:disabled { opacity: 0.7; cursor: not-allowed; }
 
         .btn-secundario { background-color: #e5e7eb; color: #374151; border: none; border-radius: 14px; padding: 14px 20px; margin-bottom: 20px; font-size: 14px; font-weight: 600; width: 100%; cursor: pointer; transition: all 0.2s; }
         .btn-secundario:active { transform: scale(0.97); background-color: #d1d5db; }
+        .btn-secundario:disabled { opacity: 0.7; cursor: not-allowed; }
 
         .titulo-tela { text-align: center; color: var(--primary-color); font-size: 22px; font-weight: 700; margin-bottom: 20px; letter-spacing: -0.5px;}
 
@@ -49,14 +51,12 @@
         .btn-fixed-bottom { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: 90%; max-width: 380px; background-color: #0ea5e9; color: white; border: none; border-radius: 30px; padding: 18px; font-size: 16px; font-weight: 700; box-shadow: 0 4px 15px rgba(14, 165, 233, 0.4); cursor: pointer; z-index: 1000; text-align: center; }
         .btn-fixed-bottom:active { background-color: #0284c7; transform: translateX(-50%) scale(0.98); }
 
-        /* ESTILOS DO DROPDOWN CUSTOMIZADO */
         .dropdown-container { position: relative; width: 100%; margin-bottom: 15px; }
         .dropdown-lista { position: absolute; top: calc(100% - 12px); left: 0; width: 100%; background: #fff; border: 1px solid var(--border-color); border-radius: 12px; max-height: 220px; overflow-y: auto; z-index: 9999; box-shadow: 0 8px 24px rgba(0,0,0,0.12); display: none; }
         .dropdown-item { padding: 14px 16px; font-size: 14px; border-bottom: 1px solid #f3f4f6; cursor: pointer; color: var(--text-main); }
         .dropdown-item:last-child { border-bottom: none; }
         .dropdown-item:active { background-color: #f0fdf4; color: var(--primary-color); font-weight: 600; }
 
-        /* ESTILO DO AVISO EM SEGUNDO PLANO */
         #toast { visibility: hidden; min-width: 250px; background-color: #1f2937; color: #fff; text-align: center; border-radius: 30px; padding: 14px; position: fixed; z-index: 10000; left: 50%; bottom: 80px; transform: translateX(-50%); font-size: 14px; font-weight: 600; box-shadow: 0px 8px 20px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 100px; }
     </style>
@@ -136,7 +136,7 @@
                 </div>
             </div>
 
-            <!-- VALIDADE (DROPDOWN DE PESQUISA) -->
+            <!-- VALIDADE -->
             <div id="campos-validade" style="display: none;">
                 <label class="info-label">Produto: <span style="color:red">*</span></label>
                 <div class="dropdown-container">
@@ -153,7 +153,7 @@
                 <label class="info-label">Data de Validade: <span style="color:red">*</span></label>
                 <input type="date" id="form-data-validade" class="input-campo" onchange="calcularDiasRestantes()">
 
-                <!-- DIAS RESTANTES E STATUS VISUAL -->
+                <!-- DIAS RESTANTES -->
                 <div style="display: flex; gap: 10px; margin-top: 5px;">
                     <div style="flex: 1;">
                         <label class="info-label">Dias Restantes:</label>
@@ -183,8 +183,7 @@
             let textoResposta = await req.text();
             try { return JSON.parse(textoResposta); } 
             catch (e) { 
-                console.error("Erro do Google. Texto devolvido:", textoResposta);
-                throw new Error("Acesso negado no Apps Script. A implantação deve estar como 'Qualquer pessoa'."); 
+                throw new Error("Erro na comunicação com o Google."); 
             }
         }
 
@@ -194,26 +193,25 @@
                 if(res.sucesso) {
                     listaGlobalProdutos = res.produtos.map(p => p.nome);
                     renderizarDropdown(listaGlobalProdutos);
-                    
                     let optV = '<option value="">Selecione...</option>'; res.vasilhames.forEach(v => { optV += `<option value="${v}">${v}</option>`; }); document.getElementById('form-vasilhame').innerHTML = optV;
                 }
             } catch(e) { console.error("Erro no load inicial:", e); }
         };
 
-        // ====== FUNÇÕES DO DROPDOWN CUSTOMIZADO ======
+        // Funções Helpers Locais (OFFLINE)
+        function salvarNoCelular() {
+            localStorage.setItem(`lince_${moduloAtivo}_${dataAtiva}`, JSON.stringify(registrosDoDiaAtivo));
+        }
+
+        // Dropdown Functions
         function renderizarDropdown(lista) {
             let html = '';
             if(lista.length === 0) html = '<div class="dropdown-item" style="color: #999;">Nenhum produto encontrado</div>';
-            lista.forEach(p => {
-                html += `<div class="dropdown-item" onclick="selecionarProduto('${p}')">${p}</div>`;
-            });
+            lista.forEach(p => { html += `<div class="dropdown-item" onclick="selecionarProduto('${p}')">${p}</div>`; });
             document.getElementById('lista-produtos-dropdown').innerHTML = html;
         }
 
-        function mostrarDropdown() {
-            document.getElementById('lista-produtos-dropdown').style.display = 'block';
-            filtrarDropdown();
-        }
+        function mostrarDropdown() { document.getElementById('lista-produtos-dropdown').style.display = 'block'; filtrarDropdown(); }
 
         function filtrarDropdown() {
             let termo = document.getElementById('form-produto-pesquisa').value.toLowerCase();
@@ -228,16 +226,9 @@
         }
 
         document.addEventListener('click', function(event) {
-            let input = document.getElementById('form-produto-pesquisa');
-            let dropdown = document.getElementById('lista-produtos-dropdown');
-            
-            if (input && dropdown && dropdown.style.display === 'block') {
-                if (event.target !== input && !dropdown.contains(event.target)) {
-                    dropdown.style.display = 'none';
-                }
-            }
+            let input = document.getElementById('form-produto-pesquisa'); let dropdown = document.getElementById('lista-produtos-dropdown');
+            if (input && dropdown && dropdown.style.display === 'block') { if (event.target !== input && !dropdown.contains(event.target)) { dropdown.style.display = 'none'; } }
         });
-        // =============================================
 
         function esconderTudo() { document.querySelectorAll('.app-container').forEach(e => e.style.display = 'none'); }
         function voltarPara(id) { esconderTudo(); document.getElementById(id).style.display = 'flex'; }
@@ -259,8 +250,8 @@
                         </div>`;
                     });
                     container.innerHTML = html;
-                } else { container.innerHTML = `<p style='color:red; text-align:center;'>Erro do Servidor: ${res.erro}</p>`; }
-            } catch(e) { container.innerHTML = `<p style='color:red; text-align:center;'>Erro de conexão: ${e.message}</p>`; }
+                } else { container.innerHTML = `<p style='color:red; text-align:center;'>Erro: ${res.erro}</p>`; }
+            } catch(e) { container.innerHTML = `<p style='color:red; text-align:center;'>Sem conexão à internet.</p>`; }
         }
 
         async function abrirDia(dataStr) {
@@ -270,18 +261,31 @@
             
             document.getElementById('btn-voltar-dia').onclick = () => voltarPara('tela-historico');
             let btnRel = document.getElementById('btn-gerar-relatorio');
-            btnRel.innerText = moduloAtivo === 'vasilhame' ? "📄 Gerar PDF do Vasilhame" : "📊 Gerar Excel da Validade";
+            btnRel.innerText = moduloAtivo === 'vasilhame' ? "📄 Sincronizar e Gerar PDF" : "📊 Sincronizar e Gerar Excel";
             btnRel.style.background = moduloAtivo === 'vasilhame' ? "linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)" : "#10b981";
 
             document.getElementById('lista-resumo-dia').style.display = 'block';
             document.getElementById('lista-detalhes-dia').style.display = 'none';
             document.getElementById('lista-resumo-dia').innerHTML = "<p style='text-align:center;'>Carregando registros...</p>";
             
+            // Tenta puxar dados já salvos no celular primeiro
+            let cacheLocal = localStorage.getItem(`lince_${moduloAtivo}_${dataAtiva}`);
+            if (cacheLocal) { registrosDoDiaAtivo = JSON.parse(cacheLocal); renderizarResumoDia(); }
+
             try {
                 let res = await chamarAPI({ acao: 'buscar_dia', modulo: moduloAtivo, data: dataStr });
-                if (res.sucesso) { registrosDoDiaAtivo = res.registros; renderizarResumoDia(); } 
-                else { document.getElementById('lista-resumo-dia').innerHTML = `<p style='color:red; text-align:center;'>Erro: ${res.erro}</p>`; }
-            } catch(e) { document.getElementById('lista-resumo-dia').innerHTML = `<p style='color:red; text-align:center;'>Erro de conexão.</p>`; }
+                if (res.sucesso) { 
+                    // Junta os dados do servidor com os pendentes locais
+                    let backendDados = res.registros;
+                    let locaisPendentes = cacheLocal ? JSON.parse(cacheLocal).filter(r => String(r.linha).startsWith("LOCAL_")) : [];
+                    registrosDoDiaAtivo = [...backendDados, ...locaisPendentes];
+                    salvarNoCelular();
+                    renderizarResumoDia(); 
+                } 
+            } catch(e) { 
+                if (!cacheLocal) document.getElementById('lista-resumo-dia').innerHTML = `<p style='color:red; text-align:center;'>Modo Offline: Sem conexão e sem cache.</p>`;
+                else mostrarToast("Modo Offline Ativo");
+            }
         }
 
         function renderizarResumoDia() {
@@ -291,8 +295,11 @@
             let resumo = {};
             registrosDoDiaAtivo.forEach(r => {
                 let nome = moduloAtivo === 'vasilhame' ? r.vasilhame : r.produto;
-                if(!resumo[nome]) resumo[nome] = { nome: nome, cx: 0, un: 0, completas: 0, contagem: 0 };
+                if(!resumo[nome]) resumo[nome] = { nome: nome, cx: 0, un: 0, completas: 0, contagem: 0, pendenteLocal: false };
                 resumo[nome].contagem++;
+                
+                if (String(r.linha).startsWith("LOCAL_")) resumo[nome].pendenteLocal = true;
+
                 if(moduloAtivo === 'vasilhame') {
                     resumo[nome].completas += parseInt(r.completas)||0;
                     resumo[nome].cx += (parseInt(r.completas)||0) + (parseInt(r.incompletas)||0) + (parseInt(r.barril)||0) + (parseInt(r.cilindros)||0);
@@ -307,6 +314,7 @@
             for(let key in resumo) {
                 let r = resumo[key];
                 let badgeText = "";
+                let avisoNuvem = r.pendenteLocal ? `<span style="color:#eab308; font-size:11px;">⚠️ Pendente de Envio</span>` : `<span style="color:#10b981; font-size:11px;">✅ Salvo</span>`;
                 
                 if(moduloAtivo === 'vasilhame') {
                     let cap = 24; let nUp = r.nome.toUpperCase();
@@ -314,12 +322,10 @@
                     if(nUp.includes("CILINDRO") || nUp.includes("BARRIL") || nUp.includes("GARRAFA")) cap = 0; 
                     let totalGf = (r.completas * cap) + r.un; 
                     badgeText = `${r.cx} CX | ${totalGf} GF`;
-                } else {
-                    badgeText = `${r.cx} CX | ${r.un} UN`;
-                }
+                } else { badgeText = `${r.cx} CX | ${r.un} UN`; }
 
                 html += `<div class="hist-card" onclick="abrirDetalheProduto('${r.nome}')" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><strong style="color:var(--primary-color); font-size:14px;">${r.nome}</strong><br><span style="font-size:12px; color:var(--text-muted);">${r.contagem} lançamento(s)</span></div>
+                    <div><strong style="color:var(--primary-color); font-size:14px;">${r.nome}</strong><br><span style="font-size:12px; color:var(--text-muted);">${r.contagem} lançamento(s)</span><br>${avisoNuvem}</div>
                     <div class="hist-badge" style="text-align:right;">TOTAL<br><span class="hist-badge-num">${badgeText}</span></div>
                 </div>`;
             }
@@ -340,9 +346,10 @@
             let html = `<h3 style="font-size:14px; color:var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom:8px; margin-bottom:12px;">${nomeProd}</h3>`;
             
             filtrados.forEach(r => {
+                let statusLoc = String(r.linha).startsWith("LOCAL_") ? "⚠️" : "✅";
                 let info = moduloAtivo === 'vasilhame' 
-                    ? `<b>Hora: ${r.data_hora.split(' ')[1]}</b> - ${r.local}<br><span style="font-size:12px;color:#666;">C/Comp: ${r.completas} | C/Incomp: ${r.incompletas} | Cilind: ${r.cilindros} | AV: ${r.avulsas}</span>`
-                    : `<b>Hora: ${r.data_hora.split(' ')[1]}</b><br><span style="font-size:12px;color:#666;">Val: ${r.data_validade} - CX: ${r.caixas} | UN: ${r.unidades}</span>`;
+                    ? `<b>Hora: ${r.data_hora.split(' ')[1]} ${statusLoc}</b> - ${r.local}<br><span style="font-size:12px;color:#666;">C/Comp: ${r.completas} | C/Incomp: ${r.incompletas} | Cilind: ${r.cilindros} | AV: ${r.avulsas}</span>`
+                    : `<b>Hora: ${r.data_hora.split(' ')[1]} ${statusLoc}</b><br><span style="font-size:12px;color:#666;">Val: ${r.data_validade} - CX: ${r.caixas} | UN: ${r.unidades}</span>`;
                 
                 html += `<div class="hist-item" onclick='editarRegistro(${JSON.stringify(r)})'>
                     <div>${info}</div><div style="color:var(--primary-color); font-weight:600; font-size:13px;">✏️ Editar</div>
@@ -370,8 +377,7 @@
                 document.getElementById('form-completas').value = r.completas; document.getElementById('form-incompletas').value = r.incompletas; document.getElementById('form-avulsas').value = r.avulsas; 
                 document.getElementById('form-barril').value = r.barril; document.getElementById('form-cilindros').value = r.cilindros || 0;
             } else {
-                document.getElementById('form-produto').value = r.produto;
-                document.getElementById('form-produto-pesquisa').value = r.produto; 
+                document.getElementById('form-produto').value = r.produto; document.getElementById('form-produto-pesquisa').value = r.produto; 
                 document.getElementById('form-caixas').value = r.caixas; document.getElementById('form-unidades').value = r.unidades; document.getElementById('form-data-validade').value = r.data_validade.split('/').reverse().join('-');
                 calcularDiasRestantes(); 
             }
@@ -385,201 +391,159 @@
             document.getElementById('campos-validade').style.display = moduloAtivo === 'validade' ? 'block' : 'none';
             
             if(!document.getElementById('form-linha').value) {
-                document.getElementById('form-vasilhame').value = ""; 
-                document.getElementById('form-produto').value = "";
-                document.getElementById('form-produto-pesquisa').value = ""; 
-                document.getElementById('form-usuario').value = "MARIO CELSO DEVIDE";
-                document.getElementById('form-data-validade').value = "";
-                document.getElementById('form-dias').value = "";
-                document.getElementById('form-status').value = "";
-                document.getElementById('form-status').style.backgroundColor = "#e5e7eb";
-                document.getElementById('form-status').style.color = "var(--text-muted)";
+                document.getElementById('form-vasilhame').value = ""; document.getElementById('form-produto').value = ""; document.getElementById('form-produto-pesquisa').value = ""; 
+                document.getElementById('form-usuario').value = "MARIO CELSO DEVIDE"; document.getElementById('form-data-validade').value = ""; document.getElementById('form-dias').value = "";
+                document.getElementById('form-status').value = ""; document.getElementById('form-status').style.backgroundColor = "#e5e7eb"; document.getElementById('form-status').style.color = "var(--text-muted)";
                 ['form-completas','form-incompletas','form-avulsas','form-barril','form-cilindros','form-caixas','form-unidades'].forEach(id => document.getElementById(id).value = "0");
-                
-                // ESCONDE O BOTÃO NA HORA DE CRIAR NOVO
                 document.getElementById('btn-excluir').style.display = 'none'; 
-            } else {
-                // MOSTRA O BOTÃO VERMELHO NA HORA DE EDITAR
-                document.getElementById('btn-excluir').style.display = 'block';
-            }
+            } else { document.getElementById('btn-excluir').style.display = 'block'; }
         }
 
         function calcularDiasRestantes() {
             let dt = document.getElementById('form-data-validade').value;
-            if(!dt) {
-                document.getElementById('form-dias').value = "";
-                document.getElementById('form-status').value = "";
-                document.getElementById('form-status').style.backgroundColor = "#e5e7eb";
-                document.getElementById('form-status').style.color = "var(--text-muted)";
-                return;
-            }
-            
-            let valDate = new Date(dt + "T00:00:00");
-            let hoje = new Date();
-            hoje.setHours(0,0,0,0);
-            
+            if(!dt) { document.getElementById('form-dias').value = ""; document.getElementById('form-status').value = ""; document.getElementById('form-status').style.backgroundColor = "#e5e7eb"; document.getElementById('form-status').style.color = "var(--text-muted)"; return; }
+            let valDate = new Date(dt + "T00:00:00"); let hoje = new Date(); hoje.setHours(0,0,0,0);
             let diff = Math.ceil((valDate - hoje) / (1000 * 3600 * 24));
             document.getElementById('form-dias').value = diff;
-            
             let statusEl = document.getElementById('form-status');
-            if (diff <= 45) {
-                statusEl.value = "VALIDADE CURTA";
-                statusEl.style.backgroundColor = "#fee2e2";
-                statusEl.style.color = "#dc2626";
-            } else if (diff < 60) {
-                statusEl.value = "ATENÇÃO";
-                statusEl.style.backgroundColor = "#fef3c7";
-                statusEl.style.color = "#d97706";
-            } else {
-                statusEl.value = "OK";
-                statusEl.style.backgroundColor = "#d1fae5";
-                statusEl.style.color = "#059669";
-            }
+            if (diff <= 45) { statusEl.value = "VALIDADE CURTA"; statusEl.style.backgroundColor = "#fee2e2"; statusEl.style.color = "#dc2626"; } 
+            else if (diff < 60) { statusEl.value = "ATENÇÃO"; statusEl.style.backgroundColor = "#fef3c7"; statusEl.style.color = "#d97706"; } 
+            else { statusEl.value = "OK"; statusEl.style.backgroundColor = "#d1fae5"; statusEl.style.color = "#059669"; }
         }
 
         function mostrarToast(msg) {
-            let toast = document.getElementById("toast");
-            toast.innerText = msg;
-            toast.className = "show";
+            let toast = document.getElementById("toast"); toast.innerText = msg; toast.className = "show";
             setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        // Função sem o 'async' para não travar a tela
         function salvarFormulario() {
-            let payload = { acao: moduloAtivo === 'vasilhame' ? 'salvar_vasilhame' : 'salvar_validade', linha: document.getElementById('form-linha').value, raw_data_hora: document.getElementById('form-raw-data').value, data_hora: document.getElementById('form-data-hora').value };
+            let linhaExistente = document.getElementById('form-linha').value;
+            let isEdit = !!linhaExistente;
             
-            if(moduloAtivo === 'vasilhame') {
-                payload.usuario = document.getElementById('form-usuario').value; payload.vasilhame = document.getElementById('form-vasilhame').value; payload.local = document.getElementById('form-local').value;
-                payload.completas = document.getElementById('form-completas').value; payload.incompletas = document.getElementById('form-incompletas').value; payload.avulsas = document.getElementById('form-avulsas').value; 
-                payload.barril = document.getElementById('form-barril').value; payload.cilindros = document.getElementById('form-cilindros').value;
-                
-                if(!payload.usuario) return alert("Preencha o Usuário Conferente!");
-                if(!payload.vasilhame) return alert("Preencha o Vasilhame!");
-            } else {
-                payload.id = "VAL-" + Math.random().toString(36).substr(2, 6).toUpperCase(); 
-                payload.produto = document.getElementById('form-produto').value; 
-                payload.caixas = document.getElementById('form-caixas').value; 
-                payload.unidades = document.getElementById('form-unidades').value; 
-                payload.data_validade = document.getElementById('form-data-validade').value;
-                
-                if(!payload.produto) return alert("Por favor, selecione um produto da lista!");
-                if(!payload.data_validade) return alert("Preencha a Validade!");
-            }
-            
-            // OTIMIZAÇÃO: Atualização visual imediata (Optimistic UI)
-            let isEdit = !!payload.linha;
+            // GERA ID LOCAL PARA FUNCIONAR OFFLINE
+            let idLinha = linhaExistente || ("LOCAL_" + Date.now());
+
             let novoRegistro = { 
-                linha: payload.linha || Date.now(), 
-                data_hora: payload.data_hora,
-                raw_data_hora: payload.raw_data_hora || payload.data_hora 
+                linha: idLinha, 
+                data_hora: document.getElementById('form-data-hora').value,
+                raw_data_hora: document.getElementById('form-raw-data').value || document.getElementById('form-data-hora').value
             };
 
             if (moduloAtivo === 'vasilhame') {
-                novoRegistro.usuario = payload.usuario; novoRegistro.vasilhame = payload.vasilhame; novoRegistro.local = payload.local;
-                novoRegistro.completas = payload.completas; novoRegistro.incompletas = payload.incompletas; novoRegistro.avulsas = payload.avulsas; novoRegistro.barril = payload.barril; novoRegistro.cilindros = payload.cilindros;
+                novoRegistro.usuario = document.getElementById('form-usuario').value; novoRegistro.vasilhame = document.getElementById('form-vasilhame').value; novoRegistro.local = document.getElementById('form-local').value;
+                novoRegistro.completas = document.getElementById('form-completas').value; novoRegistro.incompletas = document.getElementById('form-incompletas').value; novoRegistro.avulsas = document.getElementById('form-avulsas').value; novoRegistro.barril = document.getElementById('form-barril').value; novoRegistro.cilindros = document.getElementById('form-cilindros').value;
+                
+                if(!novoRegistro.usuario) return alert("Preencha o Usuário Conferente!");
+                if(!novoRegistro.vasilhame) return alert("Preencha o Vasilhame!");
             } else {
-                novoRegistro.id = payload.id; novoRegistro.produto = payload.produto; novoRegistro.caixas = payload.caixas; novoRegistro.unidades = payload.unidades;
-                novoRegistro.data_validade = payload.data_validade.split('-').reverse().join('/');
+                novoRegistro.produto = document.getElementById('form-produto').value; novoRegistro.caixas = document.getElementById('form-caixas').value; novoRegistro.unidades = document.getElementById('form-unidades').value;
+                novoRegistro.data_validade = document.getElementById('form-data-validade').value.split('-').reverse().join('/');
+                
+                if(!novoRegistro.produto) return alert("Por favor, selecione um produto da lista!");
+                if(!document.getElementById('form-data-validade').value) return alert("Preencha a Validade!");
             }
 
             if (isEdit) {
-                let idx = registrosDoDiaAtivo.findIndex(r => r.linha == payload.linha);
+                let idx = registrosDoDiaAtivo.findIndex(r => String(r.linha) === String(linhaExistente));
                 if(idx >= 0) registrosDoDiaAtivo[idx] = novoRegistro;
             } else { registrosDoDiaAtivo.push(novoRegistro); }
 
-            // Fecha a tela na hora e avisa o usuário
+            salvarNoCelular(); // Apenas guarda na memória do celular!
+            
             voltarPara('tela-dia');
             renderizarResumoDia();
-            mostrarToast("🚀 Enviando em segundo plano...");
-
-            // Roda no Backend silenciosamente
-            chamarAPI(payload).then(res => {
-                if (!res.sucesso) alert("❌ Erro ao salvar em segundo plano: " + res.erro);
-            }).catch(e => {
-                console.error(e);
-                alert("❌ Falha de conexão ao tentar salvar.");
-            });
+            mostrarToast("💾 Salvo no celular (Sincronizará no PDF)");
         }
 
         function excluirFormulario() {
             let linha = document.getElementById('form-linha').value;
             if (!linha) return;
+            if (!confirm("Tem certeza que deseja excluir este lançamento?")) return;
             
-            if (!confirm("Tem certeza que deseja excluir este lançamento permanentemente?")) return;
-            
-            // 1. Atualização Otimista: Apaga da tela na hora
+            // Remove na hora da tela
             registrosDoDiaAtivo = registrosDoDiaAtivo.filter(r => String(r.linha) !== String(linha));
+            salvarNoCelular();
+
             voltarPara('tela-dia');
             document.getElementById('lista-detalhes-dia').style.display = 'none';
             document.getElementById('lista-resumo-dia').style.display = 'block';
             renderizarResumoDia();
-            mostrarToast("🗑️ Excluindo lançamento em 2º plano...");
             
-            let payload = { acao: 'excluir_registro', modulo: moduloAtivo, linha: linha };
+            // Se for um item apenas local, o problema acabou aqui.
+            if (String(linha).startsWith("LOCAL_")) {
+                mostrarToast("🗑️ Lançamento excluído da memória.");
+                return;
+            }
+
+            // Se for um item que já estava no servidor, enfileira para apagar na hora de sincronizar
+            let filaExclusao = JSON.parse(localStorage.getItem('lince_fila_exclusao')) || [];
+            filaExclusao.push({ modulo: moduloAtivo, linha: linha });
+            localStorage.setItem('lince_fila_exclusao', JSON.stringify(filaExclusao));
             
-            // 2. Apaga da nuvem em segundo plano
-            chamarAPI(payload).then(res => {
-                if (!res.sucesso) {
-                    alert("❌ Erro ao excluir: " + res.erro);
-                } else {
-                    // Após excluir com sucesso na nuvem, fazemos um reload silencioso do dia
-                    // Isso é importante porque quando você exclui uma linha na planilha, 
-                    // a numeração das linhas de baixo altera!
-                    abrirDia(dataAtiva); 
-                }
-            }).catch(e => {
-                alert("❌ Falha de conexão ao tentar excluir.");
-            });
+            mostrarToast("🗑️ Será excluído do Servidor na sincronização.");
         }
 
-        function gerarRelatorioDia() {
+        async function gerarRelatorioDia() {
             let btn = document.getElementById('btn-gerar-relatorio'); 
             
             let user = "";
             if (moduloAtivo === 'vasilhame') {
                 let itemNaTela = document.querySelector('.hist-item b'); 
                 user = document.getElementById('form-usuario').value || (itemNaTela ? "MARIO CELSO DEVIDE" : prompt("Qual o seu nome para sair no relatório?"));
-                if (!user) return; // Se o usuário cancelar o prompt, interrompe.
+                if (!user) return; 
             }
             
-            let payload = { acao: moduloAtivo === 'vasilhame' ? 'gerar_pdf_vas' : 'gerar_excel', data: dataAtiva, usuario: user };
-            
-            // 1. Avisa na hora usando o Toast e NÃO trava o app
-            mostrarToast("🚀 Gerando relatório em 2º plano! O arquivo irá para o Drive.");
-            
-            // 2. Aciona o backend silenciosamente
-            chamarAPI(payload).then(res => {
-                if (res.sucesso) {
-                    // Avisa que terminou de salvar lá na nuvem
-                    mostrarToast("✅ Relatório salvo no Google Drive com sucesso!");
-                } else {
-                    alert("❌ Erro ao gerar relatório: " + res.erro);
+            let originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = "⏳ Sincronizando dados...";
+
+            // 1. Processa exclusões agendadas
+            let filaExclusao = JSON.parse(localStorage.getItem('lince_fila_exclusao')) || [];
+            if (filaExclusao.length > 0) {
+                try {
+                    for (let exc of filaExclusao) { await chamarAPI({ acao: 'excluir_registro', modulo: exc.modulo, linha: exc.linha }); }
+                    localStorage.setItem('lince_fila_exclusao', JSON.stringify([])); 
+                } catch(e) { console.error("Erro na exclusão em lote", e); }
+            }
+
+            // 2. Envia os dados novos do celular em lote
+            let pendentes = registrosDoDiaAtivo.filter(r => String(r.linha).startsWith("LOCAL_"));
+            if (pendentes.length > 0) {
+                try {
+                    let resLote = await chamarAPI({ acao: 'salvar_lote', modulo: moduloAtivo, registros: pendentes });
+                    if (!resLote.sucesso) { alert("❌ Erro ao enviar os dados: " + resLote.erro); btn.disabled = false; btn.innerText = originalText; return; }
+                } catch(e) {
+                    alert("❌ Sem internet! Conecte-se para enviar os dados para a base.");
+                    btn.disabled = false; btn.innerText = originalText;
+                    return;
                 }
+            }
+
+            // 3. Tudo sincronizado, manda gerar o PDF!
+            btn.innerText = "🚀 Gerando Arquivo...";
+            mostrarToast("Gerando relatório no Drive...");
+            
+            let payloadRel = { acao: moduloAtivo === 'vasilhame' ? 'gerar_pdf_vas' : 'gerar_excel', data: dataAtiva, usuario: user };
+            chamarAPI(payloadRel).then(res => {
+                btn.disabled = false; btn.innerText = originalText;
+                if (res.sucesso) {
+                    mostrarToast("✅ Relatório salvo com sucesso!");
+                    abrirDia(dataAtiva); // Recarrega para puxar as linhas reais do servidor
+                } else { alert("❌ Erro ao gerar relatório: " + res.erro); }
             }).catch(e => {
-                console.error(e);
+                btn.disabled = false; btn.innerText = originalText;
                 alert("❌ Falha de conexão ao tentar gerar relatório.");
             });
         }
 
         async function sincronizarTXT() {
-            let btn = document.getElementById('btn-sync-txt');
-            let textoOriginal = btn.innerText;
-            btn.innerText = "Lendo arquivos TXT... ⏳";
-            btn.disabled = true;
-
+            let btn = document.getElementById('btn-sync-txt'); let textoOriginal = btn.innerText;
+            btn.innerText = "Lendo arquivos TXT... ⏳"; btn.disabled = true;
             try {
                 let res = await chamarAPI({ acao: 'sincronizar_txt' });
-                if (res.sucesso) {
-                    alert("✅ " + res.msg);
-                } else {
-                    alert("❌ Erro: " + res.erro);
-                }
-            } catch(e) {
-                alert("❌ Erro de conexão.");
-            }
-            
-            btn.innerText = textoOriginal;
-            btn.disabled = false;
+                if (res.sucesso) alert("✅ " + res.msg); else alert("❌ Erro: " + res.erro);
+            } catch(e) { alert("❌ Erro de conexão."); }
+            btn.innerText = textoOriginal; btn.disabled = false;
         }
     </script>
 </body>
