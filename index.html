@@ -89,7 +89,7 @@
         <div id="lista-resumo-dia"></div>
         <div id="lista-detalhes-dia" style="display: none;"></div>
         
-        <button class="btn-principal" style="background: #10b981; margin-top: 15px;" id="btn-gerar-relatorio" onclick="gerarRelatorioDia()">📊 Gerar Relatório Deste Dia</button>
+        <button class="btn-principal" style="background: #10b981; margin-top: 15px;" id="btn-gerar-relatorio" onclick="acionarGerarRelatorio()">📊 Gerar Relatório Deste Dia</button>
         <button class="btn-fixed-bottom" style="background-color: #f59e0b;" onclick="novoRegistroDia()">➕ Adicionar Lançamento</button>
     </div>
 
@@ -110,7 +110,6 @@
                 <option value="MARIO CELSO DEVIDE">Mario Celso Devide</option>
             </select>
 
-            <!-- VASILHAMES -->
             <div id="campos-vasilhame" style="display: none;">
                 <label class="info-label">Vasilhame Padrão: <span style="color:red">*</span></label>
                 <select id="form-vasilhame" class="input-campo"></select>
@@ -136,7 +135,6 @@
                 </div>
             </div>
 
-            <!-- VALIDADE -->
             <div id="campos-validade" style="display: none;">
                 <label class="info-label">Produto: <span style="color:red">*</span></label>
                 <div class="dropdown-container">
@@ -153,7 +151,6 @@
                 <label class="info-label">Data de Validade: <span style="color:red">*</span></label>
                 <input type="date" id="form-data-validade" class="input-campo" onchange="calcularDiasRestantes()">
 
-                <!-- DIAS RESTANTES -->
                 <div style="display: flex; gap: 10px; margin-top: 5px;">
                     <div style="flex: 1;">
                         <label class="info-label">Dias Restantes:</label>
@@ -172,19 +169,18 @@
     </div>
 
     <script>
-        // ⚠️ INSIRA AQUI O SEU LINK DE IMPLANTAÇÃO!
+        // ⚠️ ATENÇÃO: COLOQUE AQUI SEU LINK DA NOVA IMPLANTAÇÃO!
         const API_URL = "https://script.google.com/macros/s/AKfycbxSYGNFeswFA24QlljQF9LswooqMpkJE7460mkaOrq0UGqgkoIoFYElMS6xNeuSDmFnxA/exec"; 
 
         let moduloAtivo = ""; let dataAtiva = ""; let registrosDoDiaAtivo = [];
         let listaGlobalProdutos = []; 
+        let isSyncing = false; // <-- NOSSA TRAVA ANTIDUPLICAÇÃO
 
         async function chamarAPI(payload) {
             let req = await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
             let textoResposta = await req.text();
             try { return JSON.parse(textoResposta); } 
-            catch (e) { 
-                throw new Error("Erro na comunicação com o Google."); 
-            }
+            catch (e) { throw new Error("Erro na comunicação com o Google."); }
         }
 
         window.onload = async function() {
@@ -198,12 +194,10 @@
             } catch(e) { console.error("Erro no load inicial:", e); }
         };
 
-        // Funções Helpers Locais (OFFLINE)
         function salvarNoCelular() {
             localStorage.setItem(`lince_${moduloAtivo}_${dataAtiva}`, JSON.stringify(registrosDoDiaAtivo));
         }
 
-        // Dropdown Functions
         function renderizarDropdown(lista) {
             let html = '';
             if(lista.length === 0) html = '<div class="dropdown-item" style="color: #999;">Nenhum produto encontrado</div>';
@@ -268,16 +262,14 @@
             document.getElementById('lista-detalhes-dia').style.display = 'none';
             document.getElementById('lista-resumo-dia').innerHTML = "<p style='text-align:center;'>Carregando registros...</p>";
             
-            // Tenta puxar dados já salvos no celular primeiro
             let cacheLocal = localStorage.getItem(`lince_${moduloAtivo}_${dataAtiva}`);
             if (cacheLocal) { registrosDoDiaAtivo = JSON.parse(cacheLocal); renderizarResumoDia(); }
 
             try {
                 let res = await chamarAPI({ acao: 'buscar_dia', modulo: moduloAtivo, data: dataStr });
                 if (res.sucesso) { 
-                    // Junta os dados do servidor com os pendentes locais
                     let backendDados = res.registros;
-                    let locaisPendentes = cacheLocal ? JSON.parse(cacheLocal).filter(r => String(r.linha).startsWith("LOCAL_")) : [];
+                    let locaisPendentes = cacheLocal ? JSON.parse(cacheLocal).filter(r => String(r.linha).startsWith("LOCAL_") || r.editado) : [];
                     registrosDoDiaAtivo = [...backendDados, ...locaisPendentes];
                     salvarNoCelular();
                     renderizarResumoDia(); 
@@ -298,7 +290,7 @@
                 if(!resumo[nome]) resumo[nome] = { nome: nome, cx: 0, un: 0, completas: 0, contagem: 0, pendenteLocal: false };
                 resumo[nome].contagem++;
                 
-                if (String(r.linha).startsWith("LOCAL_")) resumo[nome].pendenteLocal = true;
+                if (String(r.linha).startsWith("LOCAL_") || r.editado) resumo[nome].pendenteLocal = true;
 
                 if(moduloAtivo === 'vasilhame') {
                     resumo[nome].completas += parseInt(r.completas)||0;
@@ -346,7 +338,7 @@
             let html = `<h3 style="font-size:14px; color:var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom:8px; margin-bottom:12px;">${nomeProd}</h3>`;
             
             filtrados.forEach(r => {
-                let statusLoc = String(r.linha).startsWith("LOCAL_") ? "⚠️" : "✅";
+                let statusLoc = (String(r.linha).startsWith("LOCAL_") || r.editado) ? "⚠️" : "✅";
                 let info = moduloAtivo === 'vasilhame' 
                     ? `<b>Hora: ${r.data_hora.split(' ')[1]} ${statusLoc}</b> - ${r.local}<br><span style="font-size:12px;color:#666;">C/Comp: ${r.completas} | C/Incomp: ${r.incompletas} | Cilind: ${r.cilindros} | AV: ${r.avulsas}</span>`
                     : `<b>Hora: ${r.data_hora.split(' ')[1]} ${statusLoc}</b><br><span style="font-size:12px;color:#666;">Val: ${r.data_validade} - CX: ${r.caixas} | UN: ${r.unidades}</span>`;
@@ -420,8 +412,8 @@
             let linhaExistente = document.getElementById('form-linha').value;
             let isEdit = !!linhaExistente;
             
-            // GERA ID LOCAL PARA FUNCIONAR OFFLINE
-            let idLinha = linhaExistente || ("LOCAL_" + Date.now());
+            // GERA ID LOCAL ÚNICO
+            let idLinha = linhaExistente || ("LOCAL_" + Date.now() + Math.random().toString(36).substr(2, 5));
 
             let novoRegistro = { 
                 linha: idLinha, 
@@ -445,14 +437,16 @@
 
             if (isEdit) {
                 let idx = registrosDoDiaAtivo.findIndex(r => String(r.linha) === String(linhaExistente));
-                if(idx >= 0) registrosDoDiaAtivo[idx] = novoRegistro;
+                if(idx >= 0) {
+                    novoRegistro.editado = true; // Marca p/ forçar envio da edição
+                    registrosDoDiaAtivo[idx] = novoRegistro;
+                }
             } else { registrosDoDiaAtivo.push(novoRegistro); }
 
-            salvarNoCelular(); // Apenas guarda na memória do celular!
-            
+            salvarNoCelular(); 
             voltarPara('tela-dia');
             renderizarResumoDia();
-            mostrarToast("💾 Salvo no celular (Sincronizará no PDF)");
+            mostrarToast("💾 Salvo local (Sincronizará sozinho)");
         }
 
         function excluirFormulario() {
@@ -460,7 +454,6 @@
             if (!linha) return;
             if (!confirm("Tem certeza que deseja excluir este lançamento?")) return;
             
-            // Remove na hora da tela
             registrosDoDiaAtivo = registrosDoDiaAtivo.filter(r => String(r.linha) !== String(linha));
             salvarNoCelular();
 
@@ -469,23 +462,66 @@
             document.getElementById('lista-resumo-dia').style.display = 'block';
             renderizarResumoDia();
             
-            // Se for um item apenas local, o problema acabou aqui.
             if (String(linha).startsWith("LOCAL_")) {
-                mostrarToast("🗑️ Lançamento excluído da memória.");
+                mostrarToast("🗑️ Excluído da memória.");
                 return;
             }
 
-            // Se for um item que já estava no servidor, enfileira para apagar na hora de sincronizar
             let filaExclusao = JSON.parse(localStorage.getItem('lince_fila_exclusao')) || [];
             filaExclusao.push({ modulo: moduloAtivo, linha: linha });
             localStorage.setItem('lince_fila_exclusao', JSON.stringify(filaExclusao));
-            
-            mostrarToast("🗑️ Será excluído do Servidor na sincronização.");
+            mostrarToast("🗑️ Programado para excluir do Servidor.");
         }
 
-        async function gerarRelatorioDia() {
-            let btn = document.getElementById('btn-gerar-relatorio'); 
+        // =======================================================
+        // LÓGICA CENTRAL DE SINCRONIZAÇÃO E TRAVA
+        // =======================================================
+        async function executarSincronizacao(exibirLoading) {
+            // TRAVA ANTIDUPLICAÇÃO
+            if (isSyncing) return false; 
             
+            let filaExclusao = JSON.parse(localStorage.getItem('lince_fila_exclusao')) || [];
+            let pendentes = registrosDoDiaAtivo.filter(r => String(r.linha).startsWith("LOCAL_") || r.editado);
+
+            if (filaExclusao.length === 0 && pendentes.length === 0) return true; // Nada a fazer
+
+            isSyncing = true; // Aciona a trava vermelha
+            if (exibirLoading) console.log("Sincronizando lote...");
+
+            // 1. Processa exclusões
+            if (filaExclusao.length > 0) {
+                try {
+                    for (let exc of filaExclusao) { await chamarAPI({ acao: 'excluir_registro', modulo: exc.modulo, linha: exc.linha }); }
+                    localStorage.setItem('lince_fila_exclusao', JSON.stringify([])); 
+                } catch(e) { isSyncing = false; return false; }
+            }
+
+            // 2. Envia novos e editados
+            if (pendentes.length > 0) {
+                try {
+                    let resLote = await chamarAPI({ acao: 'salvar_lote', modulo: moduloAtivo, registros: pendentes });
+                    if (!resLote.sucesso) { isSyncing = false; return false; }
+                } catch(e) { isSyncing = false; return false; }
+            }
+
+            // 3. Sucesso! Baixa os IDs atualizados da planilha
+            try {
+                let res = await chamarAPI({ acao: 'buscar_dia', modulo: moduloAtivo, data: dataAtiva });
+                if (res.sucesso) {
+                    registrosDoDiaAtivo = res.registros;
+                    salvarNoCelular();
+                    if (document.getElementById('tela-dia').style.display !== 'none') renderizarResumoDia();
+                    if (!exibirLoading) mostrarToast("🔄 Sincronização em 2º plano concluída!");
+                }
+            } catch(e) {}
+            
+            isSyncing = false; // Libera a trava verde
+            return true;
+        }
+
+        // Gatilho Manual: Quando aperta "Gerar Relatório"
+        async function acionarGerarRelatorio() {
+            let btn = document.getElementById('btn-gerar-relatorio'); 
             let user = "";
             if (moduloAtivo === 'vasilhame') {
                 let itemNaTela = document.querySelector('.hist-item b'); 
@@ -495,46 +531,44 @@
             
             let originalText = btn.innerText;
             btn.disabled = true;
-            btn.innerText = "⏳ Sincronizando dados...";
-
-            // 1. Processa exclusões agendadas
-            let filaExclusao = JSON.parse(localStorage.getItem('lince_fila_exclusao')) || [];
-            if (filaExclusao.length > 0) {
-                try {
-                    for (let exc of filaExclusao) { await chamarAPI({ acao: 'excluir_registro', modulo: exc.modulo, linha: exc.linha }); }
-                    localStorage.setItem('lince_fila_exclusao', JSON.stringify([])); 
-                } catch(e) { console.error("Erro na exclusão em lote", e); }
-            }
-
-            // 2. Envia os dados novos do celular em lote
-            let pendentes = registrosDoDiaAtivo.filter(r => String(r.linha).startsWith("LOCAL_"));
-            if (pendentes.length > 0) {
-                try {
-                    let resLote = await chamarAPI({ acao: 'salvar_lote', modulo: moduloAtivo, registros: pendentes });
-                    if (!resLote.sucesso) { alert("❌ Erro ao enviar os dados: " + resLote.erro); btn.disabled = false; btn.innerText = originalText; return; }
-                } catch(e) {
-                    alert("❌ Sem internet! Conecte-se para enviar os dados para a base.");
+            
+            if (isSyncing) {
+                // Se já estiver rodando pelo fundo, avisa pra esperar.
+                btn.innerText = "⏳ Aguarde, sistema sincronizando...";
+                while(isSyncing) { await new Promise(r => setTimeout(r, 1000)); } // Espera terminar
+            } else {
+                btn.innerText = "⏳ Sincronizando dados...";
+                let syncOk = await executarSincronizacao(true);
+                if (!syncOk) {
+                    alert("❌ Sem internet ou falha de conexão! Não foi possível enviar os dados locais.");
                     btn.disabled = false; btn.innerText = originalText;
                     return;
                 }
             }
 
-            // 3. Tudo sincronizado, manda gerar o PDF!
             btn.innerText = "🚀 Gerando Arquivo...";
             mostrarToast("Gerando relatório no Drive...");
             
             let payloadRel = { acao: moduloAtivo === 'vasilhame' ? 'gerar_pdf_vas' : 'gerar_excel', data: dataAtiva, usuario: user };
             chamarAPI(payloadRel).then(res => {
                 btn.disabled = false; btn.innerText = originalText;
-                if (res.sucesso) {
-                    mostrarToast("✅ Relatório salvo com sucesso!");
-                    abrirDia(dataAtiva); // Recarrega para puxar as linhas reais do servidor
-                } else { alert("❌ Erro ao gerar relatório: " + res.erro); }
+                if (res.sucesso) { mostrarToast("✅ Relatório salvo com sucesso!"); abrirDia(dataAtiva); } 
+                else { alert("❌ Erro ao gerar relatório: " + res.erro); }
             }).catch(e => {
                 btn.disabled = false; btn.innerText = originalText;
                 alert("❌ Falha de conexão ao tentar gerar relatório.");
             });
         }
+
+        // Gatilho Automático 1: A cada 5 minutos
+        setInterval(() => { if (moduloAtivo && dataAtiva && navigator.onLine) executarSincronizacao(false); }, 300000);
+
+        // Gatilho Automático 2: Quando o usuário reabre o App
+        document.addEventListener("visibilitychange", function() {
+            if (document.visibilityState === 'visible' && moduloAtivo && dataAtiva && navigator.onLine) {
+                executarSincronizacao(false);
+            }
+        });
 
         async function sincronizarTXT() {
             let btn = document.getElementById('btn-sync-txt'); let textoOriginal = btn.innerText;
