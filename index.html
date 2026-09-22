@@ -522,7 +522,7 @@
         // LÓGICA CENTRAL DE SINCRONIZAÇÃO COM TELA DE BLOQUEIO
         // =======================================================
         async function executarSincronizacao(exibirLoading) {
-            if (isSyncing) return false; 
+            if (isSyncing) return "O sistema já está sincronizando."; 
             
             let filaExclusao = JSON.parse(localStorage.getItem('lince_fila_exclusao')) || [];
             let pendentes = registrosDoDiaAtivo.filter(r => String(r.linha).startsWith("LOCAL_") || r.editado);
@@ -530,26 +530,40 @@
             if (filaExclusao.length === 0 && pendentes.length === 0) return true; 
 
             isSyncing = true;
-            // Exibe a tela inteira de bloqueio se for uma sincronização explícita (botão gerar relatório)
             if (exibirLoading) document.getElementById('overlay-sync').style.display = 'flex';
 
             // 1. Processa exclusões
             if (filaExclusao.length > 0) {
                 try {
-                    for (let exc of filaExclusao) { await chamarAPI({ acao: 'excluir_registro', modulo: exc.modulo, linha: exc.linha }); }
+                    for (let exc of filaExclusao) { 
+                        let resExc = await chamarAPI({ acao: 'excluir_registro', modulo: exc.modulo, linha: exc.linha }); 
+                        if (!resExc.sucesso) throw new Error(resExc.erro || "Erro ao excluir.");
+                    }
                     localStorage.setItem('lince_fila_exclusao', JSON.stringify([])); 
-                } catch(e) { if(exibirLoading) document.getElementById('overlay-sync').style.display = 'none'; isSyncing = false; return false; }
+                } catch(e) { 
+                    if(exibirLoading) document.getElementById('overlay-sync').style.display = 'none'; 
+                    isSyncing = false; 
+                    return "Erro na Exclusão: " + e.message; 
+                }
             }
 
             // 2. Envia novos e editados
             if (pendentes.length > 0) {
                 try {
                     let resLote = await chamarAPI({ acao: 'salvar_lote', modulo: moduloAtivo, registros: pendentes });
-                    if (!resLote.sucesso) { if(exibirLoading) document.getElementById('overlay-sync').style.display = 'none'; isSyncing = false; return false; }
-                } catch(e) { if(exibirLoading) document.getElementById('overlay-sync').style.display = 'none'; isSyncing = false; return false; }
+                    if (!resLote.sucesso) { 
+                        if(exibirLoading) document.getElementById('overlay-sync').style.display = 'none'; 
+                        isSyncing = false; 
+                        return "Erro no Google Sheets: " + (resLote.erro || "Falha desconhecida"); 
+                    }
+                } catch(e) { 
+                    if(exibirLoading) document.getElementById('overlay-sync').style.display = 'none'; 
+                    isSyncing = false; 
+                    return "Falha de Conexão com o Servidor do Google. Tente novamente."; 
+                }
             }
 
-            // 3. Sucesso! Baixa os IDs atualizados
+            // 3. Sucesso!
             try {
                 let res = await chamarAPI({ acao: 'buscar_dia', modulo: moduloAtivo, data: dataAtiva });
                 if (res.sucesso) {
@@ -578,14 +592,14 @@
             btn.disabled = true;
             
             if (isSyncing) {
-                // Aguarda se já estiver rodando pelo fundo
                 btn.innerText = "⏳ Aguarde...";
                 while(isSyncing) { await new Promise(r => setTimeout(r, 1000)); } 
             } else {
                 btn.innerText = "⏳ Sincronizando dados...";
                 let syncOk = await executarSincronizacao(true);
-                if (!syncOk) {
-                    alert("❌ Sem internet ou falha de conexão! Não foi possível enviar os dados locais.");
+                if (syncOk !== true) {
+                    // AGORA ELE VAI TE MOSTRAR O ERRO REAL NA TELA
+                    alert("❌ Ocorreu um problema ao enviar os dados:\n\n" + syncOk);
                     btn.disabled = false; btn.innerText = originalText;
                     return;
                 }
