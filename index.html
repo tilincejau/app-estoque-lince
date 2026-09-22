@@ -59,10 +59,22 @@
 
         #toast { visibility: hidden; min-width: 250px; background-color: #1f2937; color: #fff; text-align: center; border-radius: 30px; padding: 14px; position: fixed; z-index: 10000; left: 50%; bottom: 80px; transform: translateX(-50%); font-size: 14px; font-weight: 600; box-shadow: 0px 8px 20px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 100px; }
+
+        /* NOVO: TELA DE BLOQUEIO DURANTE SINCRONIZAÇÃO PARA EVITAR CLIQUES DUPLOS */
+        .overlay-sync { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); z-index: 10000; display: none; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(4px); }
+        .spinner { border: 4px solid #e5e7eb; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin-bottom: 15px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
     <div id="toast"></div>
+    
+    <!-- TELA DE BLOQUEIO -->
+    <div id="overlay-sync" class="overlay-sync">
+        <div class="spinner"></div>
+        <h3 style="color:var(--primary-color); margin:0 0 5px 0;">Sincronizando...</h3>
+        <p style="font-size:13px; color:var(--text-muted); margin:0;">Por favor, aguarde.</p>
+    </div>
 
     <div id="tela-home" class="app-container">
         <img src="https://i.postimg.cc/x1Dpgf8n/capa-app-logistica-(400-x-400-px)-(2).png" alt="Logo Lince" class="logo">
@@ -174,7 +186,7 @@
 
         let moduloAtivo = ""; let dataAtiva = ""; let registrosDoDiaAtivo = [];
         let listaGlobalProdutos = []; 
-        let isSyncing = false; // <-- NOSSA TRAVA ANTIDUPLICAÇÃO
+        let isSyncing = false; 
 
         async function chamarAPI(payload) {
             let req = await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
@@ -183,13 +195,37 @@
             catch (e) { throw new Error("Erro na comunicação com o Google."); }
         }
 
+        // NOVO: CARREGAMENTO IMEDIATO DO CACHE (Evita lista vazia ao clicar rápido)
+        function carregarCacheOpcoes() {
+            try {
+                let cacheProd = localStorage.getItem('lince_cache_produtos');
+                if(cacheProd) {
+                    listaGlobalProdutos = JSON.parse(cacheProd);
+                    renderizarDropdown(listaGlobalProdutos);
+                }
+                let cacheVas = localStorage.getItem('lince_cache_vasilhames');
+                if(cacheVas) {
+                    let vasilhames = JSON.parse(cacheVas);
+                    let optV = '<option value="">Selecione...</option>'; 
+                    vasilhames.forEach(v => { optV += `<option value="${v}">${v}</option>`; }); 
+                    document.getElementById('form-vasilhame').innerHTML = optV;
+                }
+            } catch(e) {}
+        }
+        carregarCacheOpcoes(); // Roda imediatamente
+
         window.onload = async function() {
             try {
                 let res = await chamarAPI({ acao: 'buscar_dados_iniciais' });
                 if(res.sucesso) {
                     listaGlobalProdutos = res.produtos.map(p => p.nome);
+                    localStorage.setItem('lince_cache_produtos', JSON.stringify(listaGlobalProdutos));
                     renderizarDropdown(listaGlobalProdutos);
-                    let optV = '<option value="">Selecione...</option>'; res.vasilhames.forEach(v => { optV += `<option value="${v}">${v}</option>`; }); document.getElementById('form-vasilhame').innerHTML = optV;
+                    
+                    let optV = '<option value="">Selecione...</option>'; 
+                    res.vasilhames.forEach(v => { optV += `<option value="${v}">${v}</option>`; }); 
+                    document.getElementById('form-vasilhame').innerHTML = optV;
+                    localStorage.setItem('lince_cache_vasilhames', JSON.stringify(res.vasilhames));
                 }
             } catch(e) { console.error("Erro no load inicial:", e); }
         };
@@ -409,10 +445,15 @@
         }
 
         function salvarFormulario() {
+            // TRAVA O BOTÃO PARA EVITAR CLIQUES DUPLOS
+            let btnSalvar = document.getElementById('btn-salvar');
+            btnSalvar.disabled = true;
+            btnSalvar.innerText = "Salvando...";
+
             let linhaExistente = document.getElementById('form-linha').value;
             let isEdit = !!linhaExistente;
             
-            // GERA ID LOCAL ÚNICO
+            // GERA ID LOCAL ÚNICO PARA PREVENIR DUPLICAÇÃO NO BACKEND
             let idLinha = linhaExistente || ("LOCAL_" + Date.now() + Math.random().toString(36).substr(2, 5));
 
             let novoRegistro = { 
@@ -425,25 +466,29 @@
                 novoRegistro.usuario = document.getElementById('form-usuario').value; novoRegistro.vasilhame = document.getElementById('form-vasilhame').value; novoRegistro.local = document.getElementById('form-local').value;
                 novoRegistro.completas = document.getElementById('form-completas').value; novoRegistro.incompletas = document.getElementById('form-incompletas').value; novoRegistro.avulsas = document.getElementById('form-avulsas').value; novoRegistro.barril = document.getElementById('form-barril').value; novoRegistro.cilindros = document.getElementById('form-cilindros').value;
                 
-                if(!novoRegistro.usuario) return alert("Preencha o Usuário Conferente!");
-                if(!novoRegistro.vasilhame) return alert("Preencha o Vasilhame!");
+                if(!novoRegistro.usuario) { btnSalvar.disabled = false; btnSalvar.innerText = "💾 Salvar Lançamento"; return alert("Preencha o Usuário Conferente!"); }
+                if(!novoRegistro.vasilhame) { btnSalvar.disabled = false; btnSalvar.innerText = "💾 Salvar Lançamento"; return alert("Preencha o Vasilhame!"); }
             } else {
                 novoRegistro.produto = document.getElementById('form-produto').value; novoRegistro.caixas = document.getElementById('form-caixas').value; novoRegistro.unidades = document.getElementById('form-unidades').value;
                 novoRegistro.data_validade = document.getElementById('form-data-validade').value.split('-').reverse().join('/');
                 
-                if(!novoRegistro.produto) return alert("Por favor, selecione um produto da lista!");
-                if(!document.getElementById('form-data-validade').value) return alert("Preencha a Validade!");
+                if(!novoRegistro.produto) { btnSalvar.disabled = false; btnSalvar.innerText = "💾 Salvar Lançamento"; return alert("Por favor, selecione um produto!"); }
+                if(!document.getElementById('form-data-validade').value) { btnSalvar.disabled = false; btnSalvar.innerText = "💾 Salvar Lançamento"; return alert("Preencha a Validade!"); }
             }
 
             if (isEdit) {
                 let idx = registrosDoDiaAtivo.findIndex(r => String(r.linha) === String(linhaExistente));
                 if(idx >= 0) {
-                    novoRegistro.editado = true; // Marca p/ forçar envio da edição
+                    novoRegistro.editado = true;
                     registrosDoDiaAtivo[idx] = novoRegistro;
                 }
             } else { registrosDoDiaAtivo.push(novoRegistro); }
 
             salvarNoCelular(); 
+            
+            // Restaura o botão e volta
+            setTimeout(() => { btnSalvar.disabled = false; btnSalvar.innerText = "💾 Salvar Lançamento"; }, 500);
+            
             voltarPara('tela-dia');
             renderizarResumoDia();
             mostrarToast("💾 Salvo local (Sincronizará sozinho)");
@@ -474,37 +519,37 @@
         }
 
         // =======================================================
-        // LÓGICA CENTRAL DE SINCRONIZAÇÃO E TRAVA
+        // LÓGICA CENTRAL DE SINCRONIZAÇÃO COM TELA DE BLOQUEIO
         // =======================================================
         async function executarSincronizacao(exibirLoading) {
-            // TRAVA ANTIDUPLICAÇÃO
             if (isSyncing) return false; 
             
             let filaExclusao = JSON.parse(localStorage.getItem('lince_fila_exclusao')) || [];
             let pendentes = registrosDoDiaAtivo.filter(r => String(r.linha).startsWith("LOCAL_") || r.editado);
 
-            if (filaExclusao.length === 0 && pendentes.length === 0) return true; // Nada a fazer
+            if (filaExclusao.length === 0 && pendentes.length === 0) return true; 
 
-            isSyncing = true; // Aciona a trava vermelha
-            if (exibirLoading) console.log("Sincronizando lote...");
+            isSyncing = true;
+            // Exibe a tela inteira de bloqueio se for uma sincronização explícita (botão gerar relatório)
+            if (exibirLoading) document.getElementById('overlay-sync').style.display = 'flex';
 
             // 1. Processa exclusões
             if (filaExclusao.length > 0) {
                 try {
                     for (let exc of filaExclusao) { await chamarAPI({ acao: 'excluir_registro', modulo: exc.modulo, linha: exc.linha }); }
                     localStorage.setItem('lince_fila_exclusao', JSON.stringify([])); 
-                } catch(e) { isSyncing = false; return false; }
+                } catch(e) { if(exibirLoading) document.getElementById('overlay-sync').style.display = 'none'; isSyncing = false; return false; }
             }
 
             // 2. Envia novos e editados
             if (pendentes.length > 0) {
                 try {
                     let resLote = await chamarAPI({ acao: 'salvar_lote', modulo: moduloAtivo, registros: pendentes });
-                    if (!resLote.sucesso) { isSyncing = false; return false; }
-                } catch(e) { isSyncing = false; return false; }
+                    if (!resLote.sucesso) { if(exibirLoading) document.getElementById('overlay-sync').style.display = 'none'; isSyncing = false; return false; }
+                } catch(e) { if(exibirLoading) document.getElementById('overlay-sync').style.display = 'none'; isSyncing = false; return false; }
             }
 
-            // 3. Sucesso! Baixa os IDs atualizados da planilha
+            // 3. Sucesso! Baixa os IDs atualizados
             try {
                 let res = await chamarAPI({ acao: 'buscar_dia', modulo: moduloAtivo, data: dataAtiva });
                 if (res.sucesso) {
@@ -515,11 +560,11 @@
                 }
             } catch(e) {}
             
-            isSyncing = false; // Libera a trava verde
+            if (exibirLoading) document.getElementById('overlay-sync').style.display = 'none';
+            isSyncing = false; 
             return true;
         }
 
-        // Gatilho Manual: Quando aperta "Gerar Relatório"
         async function acionarGerarRelatorio() {
             let btn = document.getElementById('btn-gerar-relatorio'); 
             let user = "";
@@ -533,9 +578,9 @@
             btn.disabled = true;
             
             if (isSyncing) {
-                // Se já estiver rodando pelo fundo, avisa pra esperar.
-                btn.innerText = "⏳ Aguarde, sistema sincronizando...";
-                while(isSyncing) { await new Promise(r => setTimeout(r, 1000)); } // Espera terminar
+                // Aguarda se já estiver rodando pelo fundo
+                btn.innerText = "⏳ Aguarde...";
+                while(isSyncing) { await new Promise(r => setTimeout(r, 1000)); } 
             } else {
                 btn.innerText = "⏳ Sincronizando dados...";
                 let syncOk = await executarSincronizacao(true);
@@ -560,10 +605,8 @@
             });
         }
 
-        // Gatilho Automático 1: A cada 5 minutos
         setInterval(() => { if (moduloAtivo && dataAtiva && navigator.onLine) executarSincronizacao(false); }, 300000);
 
-        // Gatilho Automático 2: Quando o usuário reabre o App
         document.addEventListener("visibilitychange", function() {
             if (document.visibilityState === 'visible' && moduloAtivo && dataAtiva && navigator.onLine) {
                 executarSincronizacao(false);
