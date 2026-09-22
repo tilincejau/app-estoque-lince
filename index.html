@@ -60,7 +60,6 @@
         #toast { visibility: hidden; min-width: 250px; background-color: #1f2937; color: #fff; text-align: center; border-radius: 30px; padding: 14px; position: fixed; z-index: 10000; left: 50%; bottom: 80px; transform: translateX(-50%); font-size: 14px; font-weight: 600; box-shadow: 0px 8px 20px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 100px; }
 
-        /* NOVO: TELA DE BLOQUEIO DURANTE SINCRONIZAÇÃO PARA EVITAR CLIQUES DUPLOS */
         .overlay-sync { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.85); z-index: 10000; display: none; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(4px); }
         .spinner { border: 4px solid #e5e7eb; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
@@ -69,7 +68,6 @@
 <body>
     <div id="toast"></div>
     
-    <!-- TELA DE BLOQUEIO -->
     <div id="overlay-sync" class="overlay-sync">
         <div class="spinner"></div>
         <h3 style="color:var(--primary-color); margin:0 0 5px 0;">Sincronizando...</h3>
@@ -124,7 +122,8 @@
 
             <div id="campos-vasilhame" style="display: none;">
                 <label class="info-label">Vasilhame Padrão: <span style="color:red">*</span></label>
-                <select id="form-vasilhame" class="input-campo"></select>
+                <!-- O GATILHO QUE ALTERA OS CAMPOS ESTÁ AQUI (onchange) -->
+                <select id="form-vasilhame" class="input-campo" onchange="ajustarCamposVasilhame()"></select>
 
                 <label class="info-label">Local da Contagem: <span style="color:red">*</span></label>
                 <select id="form-local" class="input-campo">
@@ -133,17 +132,13 @@
                     <option value="CARRETA">Carreta</option>
                 </select>
 
-                <div style="display: flex; gap: 8px;">
-                    <div style="flex:1;"><label class="info-label">CX Completas:</label><input type="number" id="form-completas" class="input-campo" value="0"></div>
-                    <div style="flex:1;"><label class="info-label">GF Avulsas:</label><input type="number" id="form-avulsas" class="input-campo" value="0"></div>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <div style="flex:1;"><label class="info-label">CX Incompletas:</label><input type="number" id="form-incompletas" class="input-campo" value="0"></div>
-                    <div style="flex:1;"><label class="info-label">Barril:</label><input type="number" id="form-barril" class="input-campo" value="0"></div>
-                </div>
-                <div style="display: flex; gap: 8px;">
-                    <div style="flex:1;"><label class="info-label">Cilindros:</label><input type="number" id="form-cilindros" class="input-campo" value="0"></div>
-                    <div style="flex:1;"></div>
+                <!-- NOVO FORMATO EM GRADE: Facilita esconder caixas -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                    <div id="div-completas"><label class="info-label">CX Completas:</label><input type="number" id="form-completas" class="input-campo" value="0"></div>
+                    <div id="div-avulsas"><label class="info-label">GF Avulsas:</label><input type="number" id="form-avulsas" class="input-campo" value="0"></div>
+                    <div id="div-incompletas"><label class="info-label">CX Incompletas:</label><input type="number" id="form-incompletas" class="input-campo" value="0"></div>
+                    <div id="div-barril"><label class="info-label">Barril:</label><input type="number" id="form-barril" class="input-campo" value="0"></div>
+                    <div id="div-cilindros"><label class="info-label">Cilindros:</label><input type="number" id="form-cilindros" class="input-campo" value="0"></div>
                 </div>
             </div>
 
@@ -181,7 +176,7 @@
     </div>
 
     <script>
-        // ⚠️ ATENÇÃO: COLOQUE AQUI SEU LINK DA NOVA IMPLANTAÇÃO!
+        // SEU LINK ABAIXO:
         const API_URL = "https://script.google.com/macros/s/AKfycbxSYGNFeswFA24QlljQF9LswooqMpkJE7460mkaOrq0UGqgkoIoFYElMS6xNeuSDmFnxA/exec"; 
 
         let moduloAtivo = ""; let dataAtiva = ""; let registrosDoDiaAtivo = [];
@@ -195,7 +190,6 @@
             catch (e) { throw new Error("Erro na comunicação com o Google."); }
         }
 
-        // NOVO: CARREGAMENTO IMEDIATO DO CACHE (Evita lista vazia ao clicar rápido)
         function carregarCacheOpcoes() {
             try {
                 let cacheProd = localStorage.getItem('lince_cache_produtos');
@@ -212,7 +206,7 @@
                 }
             } catch(e) {}
         }
-        carregarCacheOpcoes(); // Roda imediatamente
+        carregarCacheOpcoes(); 
 
         window.onload = async function() {
             try {
@@ -227,11 +221,42 @@
                     document.getElementById('form-vasilhame').innerHTML = optV;
                     localStorage.setItem('lince_cache_vasilhames', JSON.stringify(res.vasilhames));
                 }
-            } catch(e) { console.error("Erro no load inicial:", e); }
+            } catch(e) {}
         };
 
         function salvarNoCelular() {
             localStorage.setItem(`lince_${moduloAtivo}_${dataAtiva}`, JSON.stringify(registrosDoDiaAtivo));
+        }
+
+        // NOVO: FUNÇÃO PARA MOSTRAR/ESCONDER CAMPOS DO VASILHAME
+        function ajustarCamposVasilhame() {
+            let vas = document.getElementById('form-vasilhame').value.toUpperCase();
+            
+            let dComp = document.getElementById('div-completas');
+            let dAvul = document.getElementById('div-avulsas');
+            let dIncomp = document.getElementById('div-incompletas');
+            let dBarril = document.getElementById('div-barril');
+            let dCilin = document.getElementById('div-cilindros');
+
+            if (vas.includes("BARRIL")) {
+                dComp.style.display = 'none'; dAvul.style.display = 'none'; dIncomp.style.display = 'none'; dCilin.style.display = 'none';
+                dBarril.style.display = 'block';
+                // Zera os que ficam ocultos para não interferir nos cálculos
+                document.getElementById('form-completas').value = "0"; document.getElementById('form-avulsas').value = "0"; 
+                document.getElementById('form-incompletas').value = "0"; document.getElementById('form-cilindros').value = "0";
+            } 
+            else if (vas.includes("CILINDRO")) {
+                dComp.style.display = 'none'; dAvul.style.display = 'none'; dIncomp.style.display = 'none'; dBarril.style.display = 'none';
+                dCilin.style.display = 'block';
+                document.getElementById('form-completas').value = "0"; document.getElementById('form-avulsas').value = "0"; 
+                document.getElementById('form-incompletas').value = "0"; document.getElementById('form-barril').value = "0";
+            } 
+            else {
+                // Caso das Caixas
+                dComp.style.display = 'block'; dAvul.style.display = 'block'; dIncomp.style.display = 'block';
+                dBarril.style.display = 'none'; dCilin.style.display = 'none';
+                document.getElementById('form-barril').value = "0"; document.getElementById('form-cilindros').value = "0";
+            }
         }
 
         function renderizarDropdown(lista) {
@@ -401,9 +426,19 @@
             document.getElementById('form-linha').value = r.linha; document.getElementById('form-raw-data').value = r.raw_data_hora; document.getElementById('form-data-hora').value = r.data_hora;
             prepararForm();
             if(moduloAtivo === 'vasilhame') {
-                document.getElementById('form-usuario').value = r.usuario || "MARIO CELSO DEVIDE"; document.getElementById('form-vasilhame').value = r.vasilhame; document.getElementById('form-local').value = r.local;
-                document.getElementById('form-completas').value = r.completas; document.getElementById('form-incompletas').value = r.incompletas; document.getElementById('form-avulsas').value = r.avulsas; 
-                document.getElementById('form-barril').value = r.barril; document.getElementById('form-cilindros').value = r.cilindros || 0;
+                document.getElementById('form-usuario').value = r.usuario || "MARIO CELSO DEVIDE"; 
+                document.getElementById('form-vasilhame').value = r.vasilhame; 
+                document.getElementById('form-local').value = r.local;
+                
+                // Preenche valores
+                document.getElementById('form-completas').value = r.completas; 
+                document.getElementById('form-incompletas').value = r.incompletas; 
+                document.getElementById('form-avulsas').value = r.avulsas; 
+                document.getElementById('form-barril').value = r.barril; 
+                document.getElementById('form-cilindros').value = r.cilindros || 0;
+                
+                // Ajusta os campos baseados no vasilhame carregado
+                ajustarCamposVasilhame();
             } else {
                 document.getElementById('form-produto').value = r.produto; document.getElementById('form-produto-pesquisa').value = r.produto; 
                 document.getElementById('form-caixas').value = r.caixas; document.getElementById('form-unidades').value = r.unidades; document.getElementById('form-data-validade').value = r.data_validade.split('/').reverse().join('-');
@@ -424,6 +459,7 @@
                 document.getElementById('form-status').value = ""; document.getElementById('form-status').style.backgroundColor = "#e5e7eb"; document.getElementById('form-status').style.color = "var(--text-muted)";
                 ['form-completas','form-incompletas','form-avulsas','form-barril','form-cilindros','form-caixas','form-unidades'].forEach(id => document.getElementById(id).value = "0");
                 document.getElementById('btn-excluir').style.display = 'none'; 
+                if (moduloAtivo === 'vasilhame') ajustarCamposVasilhame(); // Reseta Layout
             } else { document.getElementById('btn-excluir').style.display = 'block'; }
         }
 
@@ -445,15 +481,11 @@
         }
 
         function salvarFormulario() {
-            // TRAVA O BOTÃO PARA EVITAR CLIQUES DUPLOS
             let btnSalvar = document.getElementById('btn-salvar');
-            btnSalvar.disabled = true;
-            btnSalvar.innerText = "Salvando...";
+            btnSalvar.disabled = true; btnSalvar.innerText = "Salvando...";
 
             let linhaExistente = document.getElementById('form-linha').value;
             let isEdit = !!linhaExistente;
-            
-            // GERA ID LOCAL ÚNICO PARA PREVENIR DUPLICAÇÃO NO BACKEND
             let idLinha = linhaExistente || ("LOCAL_" + Date.now() + Math.random().toString(36).substr(2, 5));
 
             let novoRegistro = { 
@@ -478,15 +510,10 @@
 
             if (isEdit) {
                 let idx = registrosDoDiaAtivo.findIndex(r => String(r.linha) === String(linhaExistente));
-                if(idx >= 0) {
-                    novoRegistro.editado = true;
-                    registrosDoDiaAtivo[idx] = novoRegistro;
-                }
+                if(idx >= 0) { novoRegistro.editado = true; registrosDoDiaAtivo[idx] = novoRegistro; }
             } else { registrosDoDiaAtivo.push(novoRegistro); }
 
             salvarNoCelular(); 
-            
-            // Restaura o botão e volta
             setTimeout(() => { btnSalvar.disabled = false; btnSalvar.innerText = "💾 Salvar Lançamento"; }, 500);
             
             voltarPara('tela-dia');
@@ -518,9 +545,6 @@
             mostrarToast("🗑️ Programado para excluir do Servidor.");
         }
 
-        // =======================================================
-        // LÓGICA CENTRAL DE SINCRONIZAÇÃO COM TELA DE BLOQUEIO
-        // =======================================================
         async function executarSincronizacao(exibirLoading) {
             if (isSyncing) return "O sistema já está sincronizando."; 
             
@@ -532,7 +556,6 @@
             isSyncing = true;
             if (exibirLoading) document.getElementById('overlay-sync').style.display = 'flex';
 
-            // 1. Processa exclusões
             if (filaExclusao.length > 0) {
                 try {
                     for (let exc of filaExclusao) { 
@@ -547,7 +570,6 @@
                 }
             }
 
-            // 2. Envia novos e editados
             if (pendentes.length > 0) {
                 try {
                     let resLote = await chamarAPI({ acao: 'salvar_lote', modulo: moduloAtivo, registros: pendentes });
@@ -556,6 +578,12 @@
                         isSyncing = false; 
                         return "Erro no Google Sheets: " + (resLote.erro || "Falha desconhecida"); 
                     }
+                    
+                    // CORREÇÃO CRÍTICA AQUI: Limpa os pendentes do cache AGORA pra não duplicar!
+                    registrosDoDiaAtivo = registrosDoDiaAtivo.filter(r => !String(r.linha).startsWith("LOCAL_"));
+                    registrosDoDiaAtivo.forEach(r => r.editado = false);
+                    salvarNoCelular();
+                    
                 } catch(e) { 
                     if(exibirLoading) document.getElementById('overlay-sync').style.display = 'none'; 
                     isSyncing = false; 
@@ -563,7 +591,6 @@
                 }
             }
 
-            // 3. Sucesso!
             try {
                 let res = await chamarAPI({ acao: 'buscar_dia', modulo: moduloAtivo, data: dataAtiva });
                 if (res.sucesso) {
@@ -598,7 +625,6 @@
                 btn.innerText = "⏳ Sincronizando dados...";
                 let syncOk = await executarSincronizacao(true);
                 if (syncOk !== true) {
-                    // AGORA ELE VAI TE MOSTRAR O ERRO REAL NA TELA
                     alert("❌ Ocorreu um problema ao enviar os dados:\n\n" + syncOk);
                     btn.disabled = false; btn.innerText = originalText;
                     return;
