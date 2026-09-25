@@ -232,7 +232,7 @@
 
         // Inicializa o calendário profissional Flatpickr
         flatpickr("#form-data-validade", {
-            dateFormat: "Y-m-d",
+            dateFormat: "d/m/Y", // MUDADO PARA DIA/MÊS/ANO
             locale: "pt", 
             disableMobile: "true", 
             onChange: function(selectedDates, dateStr, instance) {
@@ -509,7 +509,7 @@
             } else {
                 document.getElementById('form-produto').value = r.produto; document.getElementById('form-produto-pesquisa').value = r.produto; 
                 document.getElementById('form-caixas').value = r.caixas; document.getElementById('form-unidades').value = r.unidades; 
-                document.getElementById('form-data-validade')._flatpickr.setDate(r.data_validade.split('/').reverse().join('-')); // Seta pro flatpickr
+                document.getElementById('form-data-validade')._flatpickr.setDate(r.data_validade); // SETA A DATA DE FORMA DIRETA
                 calcularDiasRestantes(); 
             }
             esconderTudo(); document.getElementById('tela-form').style.display = 'flex';
@@ -539,10 +539,16 @@
         function calcularDiasRestantes() {
             let dt = document.getElementById('form-data-validade').value;
             if(!dt) { document.getElementById('form-dias').value = ""; document.getElementById('form-status').value = ""; document.getElementById('form-status').style.backgroundColor = "#e5e7eb"; document.getElementById('form-status').style.color = "var(--text-muted)"; return; }
-            let valDate = new Date(dt + "T00:00:00"); let hoje = new Date(); hoje.setHours(0,0,0,0);
+            
+            // dt agora chega como DD/MM/YYYY, quebramos e montamos no padrão matemático
+            let partes = dt.split('/');
+            let valDate = new Date(`${partes[2]}-${partes[1]}-${partes[0]}T00:00:00`); 
+            let hoje = new Date(); hoje.setHours(0,0,0,0);
+            
             let diff = Math.ceil((valDate - hoje) / (1000 * 3600 * 24));
             document.getElementById('form-dias').value = diff;
             let statusEl = document.getElementById('form-status');
+            
             if (diff <= 45) { statusEl.value = "VALIDADE CURTA"; statusEl.style.backgroundColor = "#fee2e2"; statusEl.style.color = "#dc2626"; } 
             else if (diff < 60) { statusEl.value = "ATENÇÃO"; statusEl.style.backgroundColor = "#fef3c7"; statusEl.style.color = "#d97706"; } 
             else { statusEl.value = "OK"; statusEl.style.backgroundColor = "#d1fae5"; statusEl.style.color = "#059669"; }
@@ -575,7 +581,7 @@
                 if(!novoRegistro.vasilhame) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Preencha o Vasilhame!"); }
             } else {
                 novoRegistro.produto = document.getElementById('form-produto').value; novoRegistro.caixas = document.getElementById('form-caixas').value; novoRegistro.unidades = document.getElementById('form-unidades').value;
-                novoRegistro.data_validade = document.getElementById('form-data-validade').value.split('-').reverse().join('/');
+                novoRegistro.data_validade = document.getElementById('form-data-validade').value; // SALVA DIRETO COMO DD/MM/YYYY
                 
                 if(!novoRegistro.produto) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Por favor, selecione um produto!"); }
                 if(!document.getElementById('form-data-validade').value) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Preencha a Validade!"); }
