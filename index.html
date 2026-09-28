@@ -23,6 +23,7 @@
             --border-color: #e5e7eb; --input-bg: #f9fafb;
         }
 
+        /* Alta Performance de Toque para Mobile */
         body, button, input, select { touch-action: manipulation; }
         
         body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; color: var(--text-main); -webkit-font-smoothing: antialiased; }
@@ -30,6 +31,7 @@
         .logo { width: 100%; max-width: 220px; display: block; margin: 0 auto 15px auto; }
         .desenvolvedor { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: -10px; margin-bottom: 25px; font-weight: 500;}
 
+        /* Animações Curtas para Velocidade */
         .input-campo { width: 100%; padding: 14px 16px; margin-bottom: 15px; border: 1.5px solid var(--border-color); border-radius: 12px; box-sizing: border-box; font-size: 15px; background-color: var(--input-bg); color: var(--text-main); transition: all 0.1s ease; }
         .input-campo:focus { outline: none; border-color: var(--primary-color); background-color: #fff; box-shadow: 0 0 0 4px rgba(26, 77, 46, 0.1); }
         .input-campo.travado { background-color: #e5e7eb; border-color: #d1d5db; color: var(--text-muted); pointer-events: none; }
@@ -76,6 +78,7 @@
         .spinner { border: 4px solid #e5e7eb; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
+        /* Estilo do Flatpickr (Calendário) Integrado ao Layout */
         .flatpickr-calendar { box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important; border: none !important; border-radius: 16px !important; font-family: 'Inter', sans-serif !important; }
         .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay { background: var(--primary-color) !important; border-color: var(--primary-color) !important; }
     </style>
@@ -89,6 +92,7 @@
         <p style="font-size:13px; color:var(--text-muted); margin:0;">Por favor, aguarde.</p>
     </div>
 
+    <!-- TELA HOME -->
     <div id="tela-home" class="app-container">
         <img src="https://i.postimg.cc/x1Dpgf8n/capa-app-logistica-(400-x-400-px)-(2).png" alt="Logo Lince" class="logo">
         <h2 class="titulo-tela" style="font-size: 20px;">Controle de Estoque</h2>
@@ -106,6 +110,7 @@
         </button>
     </div>
 
+    <!-- TELA HISTÓRICO -->
     <div id="tela-historico" class="app-container" style="display: none; padding-bottom: 100px;">
         <button class="btn-secundario" style="padding: 10px; width: 100px; margin-bottom: 10px;" onclick="voltarPara('tela-home')">
             <i class="ph ph-arrow-left"></i> Voltar
@@ -117,6 +122,7 @@
         </button>
     </div>
 
+    <!-- TELA DIA -->
     <div id="tela-dia" class="app-container" style="display: none; padding-bottom: 100px;">
         <button class="btn-secundario" id="btn-voltar-dia" style="padding: 10px; width: 100px; margin-bottom: 10px;" onclick="voltarPara('tela-historico')">
             <i class="ph ph-arrow-left"></i> Voltar
@@ -135,6 +141,7 @@
         </button>
     </div>
 
+    <!-- TELA FORMULÁRIO -->
     <div id="tela-form" class="app-container" style="display: none; padding-bottom: 50px;">
         <button class="btn-secundario" style="padding: 10px; width: 100px; margin-bottom: 10px;" onclick="voltarPara('tela-dia')">
             <i class="ph ph-arrow-left"></i> Cancelar
@@ -145,6 +152,7 @@
             <input type="hidden" id="form-linha">
             <input type="hidden" id="form-raw-data">
             
+            <!-- Aviso visual da hora real -->
             <label class="info-label">Data / Hora: <span style="font-size:10px; font-weight:normal;">(Salva ao clicar no botão final)</span></label>
             <input type="text" id="form-data-hora" class="input-campo travado" readonly>
             
@@ -211,13 +219,19 @@
         </div>
     </div>
 
+    <!-- INÍCIO DO JAVASCRIPT -->
     <script>
+        // MANTENHA A SUA URL DA API AQUI
         const API_URL = "https://script.google.com/macros/s/AKfycbxSYGNFeswFA24QlljQF9LswooqMpkJE7460mkaOrq0UGqgkoIoFYElMS6xNeuSDmFnxA/exec"; 
+
+        // Adicionada a trava anti-clique duplo para submissões repetidas[cite: 5]
+        let isSubmitting = false;
 
         let moduloAtivo = ""; let dataAtiva = ""; let registrosDoDiaAtivo = [];
         let listaGlobalProdutos = []; 
         let isSyncing = false; 
 
+        // Otimização de Teclado
         document.getElementById('form-caixas').addEventListener('keydown', function(e) {
             if(e.key === 'Enter') { e.preventDefault(); document.getElementById('form-unidades').focus(); }
         });
@@ -225,6 +239,7 @@
             if(e.key === 'Enter') { e.preventDefault(); salvarFormulario(); }
         });
 
+        // Configuração do Calendário Flatpickr
         flatpickr("#form-data-validade", {
             dateFormat: "d/m/Y",
             locale: "pt", 
@@ -242,6 +257,7 @@
             catch (e) { throw new Error("Erro na comunicação com o Google."); }
         }
 
+        // Cache de Dados para Alta Performance
         function carregarCacheOpcoes() {
             try {
                 let cacheProd = localStorage.getItem('lince_cache_produtos');
@@ -334,7 +350,7 @@
         function esconderTudo() { document.querySelectorAll('.app-container').forEach(e => e.style.display = 'none'); }
         function voltarPara(id) { esconderTudo(); document.getElementById(id).style.display = 'flex'; }
 
-        // MUDANÇA 1: Histórico ultra rápido (Cache Local primeiro)
+        // Navegação Ultrarrápida no Histórico
         async function abrirHistorico(modulo) {
             moduloAtivo = modulo;
             esconderTudo(); document.getElementById('tela-historico').style.display = 'flex';
@@ -484,7 +500,7 @@
 
         function novoRegistroDia() {
             document.getElementById('form-linha').value = ""; document.getElementById('form-raw-data').value = "";
-            let hj = new Date(); document.getElementById('form-data-hora').value = ("0"+hj.getDate()).slice(-2) + "/" + ("0"+(hj.getMonth()+1)).slice(-2) + "/" + hj.getFullYear() + " " + ("0"+hj.getHours()).slice(-2) + ":" + ("0"+hj.getMinutes()).slice(-2);
+            document.getElementById('form-data-hora').value = "A hora será gerada ao salvar...";
             prepararForm(); esconderTudo(); document.getElementById('tela-form').style.display = 'flex';
         }
 
@@ -549,22 +565,22 @@
         }
 
         function salvarFormulario() {
+            // Trava anti-duplicidade[cite: 5]
+            if(isSubmitting) return;
+            isSubmitting = true;
+
             let btnSalvar = document.getElementById('btn-salvar');
             btnSalvar.disabled = true; btnSalvar.innerHTML = '<i class="ph ph-spinner ph-spin" style="font-size: 20px;"></i> Salvando...';
 
             let linhaExistente = document.getElementById('form-linha').value;
             let isEdit = !!linhaExistente;
             
-            // MUDANÇA 2: Fixação da hora exata do salvamento para não ficar "hora aleatória" de horas atrás.
-            let dataHoraFinal = document.getElementById('form-data-hora').value;
-            let rawDataFinal = document.getElementById('form-raw-data').value || dataHoraFinal;
-
-            if (!isEdit) {
-                let hj = new Date();
-                dataHoraFinal = ("0"+hj.getDate()).slice(-2) + "/" + ("0"+(hj.getMonth()+1)).slice(-2) + "/" + hj.getFullYear() + " " + ("0"+hj.getHours()).slice(-2) + ":" + ("0"+hj.getMinutes()).slice(-2);
-                rawDataFinal = dataHoraFinal;
-            }
+            let hj = new Date();
+            let horaExata = ("0"+hj.getDate()).slice(-2) + "/" + ("0"+(hj.getMonth()+1)).slice(-2) + "/" + hj.getFullYear() + " " + ("0"+hj.getHours()).slice(-2) + ":" + ("0"+hj.getMinutes()).slice(-2);
             
+            let dataHoraFinal = isEdit ? document.getElementById('form-data-hora').value : horaExata;
+            let rawDataFinal = isEdit ? (document.getElementById('form-raw-data').value || dataHoraFinal) : horaExata;
+
             let idLinha = linhaExistente || ("LOCAL_" + Date.now() + Math.random().toString(36).substr(2, 5));
 
             let novoRegistro = { 
@@ -575,14 +591,14 @@
                 novoRegistro.usuario = document.getElementById('form-usuario').value; novoRegistro.vasilhame = document.getElementById('form-vasilhame').value; novoRegistro.local = document.getElementById('form-local').value;
                 novoRegistro.completas = document.getElementById('form-completas').value; novoRegistro.incompletas = document.getElementById('form-incompletas').value; novoRegistro.avulsas = document.getElementById('form-avulsas').value; novoRegistro.barril = document.getElementById('form-barril').value; novoRegistro.cilindros = document.getElementById('form-cilindros').value;
                 
-                if(!novoRegistro.usuario) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Preencha o Usuário Conferente!"); }
-                if(!novoRegistro.vasilhame) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Preencha o Vasilhame!"); }
+                if(!novoRegistro.usuario) { btnSalvar.disabled = false; isSubmitting = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Preencha o Usuário Conferente!"); }
+                if(!novoRegistro.vasilhame) { btnSalvar.disabled = false; isSubmitting = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Preencha o Vasilhame!"); }
             } else {
                 novoRegistro.produto = document.getElementById('form-produto').value; novoRegistro.caixas = document.getElementById('form-caixas').value; novoRegistro.unidades = document.getElementById('form-unidades').value;
                 novoRegistro.data_validade = document.getElementById('form-data-validade').value;
                 
-                if(!novoRegistro.produto) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Por favor, selecione um produto!"); }
-                if(!document.getElementById('form-data-validade').value) { btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Preencha a Validade!"); }
+                if(!novoRegistro.produto) { btnSalvar.disabled = false; isSubmitting = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Por favor, selecione um produto!"); }
+                if(!document.getElementById('form-data-validade').value) { btnSalvar.disabled = false; isSubmitting = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Preencha a Validade!"); }
             }
 
             if (isEdit) {
@@ -596,6 +612,7 @@
             voltarPara('tela-dia');
             renderizarResumoDia();
             mostrarToast("💾 Salvo local (Sincronizará sozinho)");
+            isSubmitting = false;
         }
 
         function excluirFormulario() {
@@ -622,13 +639,12 @@
             mostrarToast("🗑️ Programado para excluir do Servidor.");
         }
 
-        // MUDANÇA 3: Sincronização Inteligente que não apaga dados digitados no meio do processo!
         async function executarSincronizacao(exibirLoading) {
             if (isSyncing) return "O sistema já está sincronizando."; 
             
             let filaExclusao = JSON.parse(localStorage.getItem('lince_fila_exclusao')) || [];
             let pendentes = registrosDoDiaAtivo.filter(r => String(r.linha).startsWith("LOCAL_") || r.editado);
-            let IDsEnviados = pendentes.map(p => p.linha); // Armazena a ID dos itens que estão sendo enviados agora!
+            let IDsEnviados = pendentes.map(p => p.linha); 
 
             if (filaExclusao.length === 0 && pendentes.length === 0) return true; 
 
@@ -638,8 +654,8 @@
             if (filaExclusao.length > 0) {
                 try {
                     for (let exc of filaExclusao) { 
-                        let resExc = await chamarAPI({ acao: 'excluir_registro', modulo: exc.modulo, linha: exc.linha }); 
-                        if (!resExc.sucesso) throw new Error(resExc.erro || "Erro ao excluir.");
+                        // Agora o Google Apps Script (backend) processa a exclusão e perdoa erros silenciosamente!
+                        await chamarAPI({ acao: 'excluir_registro', modulo: exc.modulo, linha: exc.linha }); 
                     }
                     localStorage.setItem('lince_fila_exclusao', JSON.stringify([])); 
                 } catch(e) { 
@@ -658,7 +674,6 @@
                         return "Erro no Google Sheets: " + (resLote.erro || "Falha desconhecida"); 
                     }
                     
-                    // APAGA SOMENTE OS QUE FORAM ENVIADOS COM SUCESSO NESTE LOTE (NUNCA os que o usuário acabou de digitar por fora)
                     registrosDoDiaAtivo = registrosDoDiaAtivo.filter(r => !(String(r.linha).startsWith("LOCAL_") && IDsEnviados.includes(r.linha)));
                     registrosDoDiaAtivo.forEach(r => { if(IDsEnviados.includes(r.linha)) r.editado = false; });
                     salvarNoCelular();
@@ -674,7 +689,6 @@
                 let res = await chamarAPI({ acao: 'buscar_dia', modulo: moduloAtivo, data: dataAtiva });
                 if (res.sucesso) {
                     let backendDados = res.registros;
-                    // Protege os lançamentos que o usuário fez em modo offline DURANTE este 1 segundo de requisição
                     let aindaPendentes = registrosDoDiaAtivo.filter(r => String(r.linha).startsWith("LOCAL_") || r.editado);
                     
                     registrosDoDiaAtivo = [...backendDados, ...aindaPendentes];
@@ -724,19 +738,12 @@
                 btn.disabled = false; btn.innerHTML = originalHTML;
                 if (res.sucesso) { 
                     mostrarToast("✅ Relatório gerado com sucesso!"); 
-                    
-                    // NOVA FUNÇÃO: Tenta abrir o PDF automaticamente na tela do celular
-                    if(res.link) {
-                        window.open(res.link, '_blank');
-                    }
-                    
+                    if(res.link) { window.open(res.link, '_blank'); }
                     abrirDia(dataAtiva); 
                 } 
                 else { alert("❌ Erro ao gerar relatório: " + res.erro); }
             }).catch(e => {
                 btn.disabled = false; btn.innerHTML = originalHTML;
-                
-                // MUDANÇA AQUI: Trata o Falso Negativo e tranquiliza o usuário
                 alert("⚠️ A conexão do celular expirou devido ao peso dos dados, MAS fique tranquilo:\n\nO relatório provavelmente foi gerado com sucesso no servidor. Verifique a pasta do seu Google Drive!");
             });
         }
