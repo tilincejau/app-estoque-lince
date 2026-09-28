@@ -653,8 +653,10 @@
 
             if (filaExclusao.length > 0) {
                 try {
+                    // ORDENAÇÃO DE BAIXO PARA CIMA PARA EXCLUIR MÚLTIPLAS LINHAS COM SUCESSO
+                    filaExclusao.sort((a, b) => parseInt(b.linha) - parseInt(a.linha));
+
                     for (let exc of filaExclusao) { 
-                        // Agora o Google Apps Script (backend) processa a exclusão e perdoa erros silenciosamente!
                         await chamarAPI({ acao: 'excluir_registro', modulo: exc.modulo, linha: exc.linha }); 
                     }
                     localStorage.setItem('lince_fila_exclusao', JSON.stringify([])); 
