@@ -716,16 +716,28 @@
             }
 
             btn.innerHTML = '<i class="ph ph-rocket ph-spin" style="font-size: 20px;"></i> Gerando Arquivo...';
-            mostrarToast("Gerando relatório no Drive...");
+            mostrarToast("O Google está gerando o arquivo. Isso pode levar alguns segundos...");
             
             let payloadRel = { acao: moduloAtivo === 'vasilhame' ? 'gerar_pdf_vas' : 'gerar_excel', data: dataAtiva, usuario: user };
+            
             chamarAPI(payloadRel).then(res => {
                 btn.disabled = false; btn.innerHTML = originalHTML;
-                if (res.sucesso) { mostrarToast("✅ Relatório salvo com sucesso!"); abrirDia(dataAtiva); } 
+                if (res.sucesso) { 
+                    mostrarToast("✅ Relatório gerado com sucesso!"); 
+                    
+                    // NOVA FUNÇÃO: Tenta abrir o PDF automaticamente na tela do celular
+                    if(res.link) {
+                        window.open(res.link, '_blank');
+                    }
+                    
+                    abrirDia(dataAtiva); 
+                } 
                 else { alert("❌ Erro ao gerar relatório: " + res.erro); }
             }).catch(e => {
                 btn.disabled = false; btn.innerHTML = originalHTML;
-                alert("❌ Falha de conexão ao tentar gerar relatório.");
+                
+                // MUDANÇA AQUI: Trata o Falso Negativo e tranquiliza o usuário
+                alert("⚠️ A conexão do celular expirou devido ao peso dos dados, MAS fique tranquilo:\n\nO relatório provavelmente foi gerado com sucesso no servidor. Verifique a pasta do seu Google Drive!");
             });
         }
 
