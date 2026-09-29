@@ -238,15 +238,26 @@
             }
         });
 
-        // REGRAS DE CONEXÃO BLINDADAS
-        async function chamarAPI(payload) {
-            try {
-                let req = await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
-                let textoResposta = await req.text();
-                return JSON.parse(textoResposta);
-            } catch (e) {
-                // Ao invés de travar a aplicação com Failed To Fetch, devolvemos este erro seguro
-                return { sucesso: false, erro: "Falha de rede" };
+        // REGRAS DE CONEXÃO BLINDADAS COM AUTO-RETRY (TENTATIVA AUTOMÁTICA)
+        async function chamarAPI(payload, tentativas = 3) {
+            for (let i = 0; i < tentativas; i++) {
+                try {
+                    let req = await fetch(API_URL, { 
+                        method: 'POST', 
+                        redirect: 'follow', 
+                        headers: { "Content-Type": "text/plain;charset=utf-8" }, 
+                        body: JSON.stringify(payload) 
+                    });
+                    let textoResposta = await req.text();
+                    return JSON.parse(textoResposta);
+                } catch (e) {
+                    // Se for a última tentativa, desiste e devolve o erro
+                    if (i === tentativas - 1) {
+                        return { sucesso: false, erro: "Falha de rede" };
+                    }
+                    // Se falhar (micro-queda), o sistema espera 2 segundos e tenta de novo SOZINHO!
+                    await new Promise(res => setTimeout(res, 2000));
+                }
             }
         }
 
