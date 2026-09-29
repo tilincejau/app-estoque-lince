@@ -238,7 +238,6 @@
             }
         });
 
-        // REGRAS DE CONEXÃO BLINDADAS COM AUTO-RETRY (TENTATIVA AUTOMÁTICA)
         async function chamarAPI(payload, tentativas = 3) {
             for (let i = 0; i < tentativas; i++) {
                 try {
@@ -251,11 +250,7 @@
                     let textoResposta = await req.text();
                     return JSON.parse(textoResposta);
                 } catch (e) {
-                    // Se for a última tentativa, desiste e devolve o erro
-                    if (i === tentativas - 1) {
-                        return { sucesso: false, erro: "Falha de rede" };
-                    }
-                    // Se falhar (micro-queda), o sistema espera 2 segundos e tenta de novo SOZINHO!
+                    if (i === tentativas - 1) return { sucesso: false, erro: "Falha de rede" };
                     await new Promise(res => setTimeout(res, 2000));
                 }
             }
@@ -394,7 +389,8 @@
             esconderTudo(); document.getElementById('tela-dia').style.display = 'flex';
             document.getElementById('titulo-dia').innerText = "Data: " + dataStr;
             
-            document.getElementById('btn-voltar-dia').onclick = () => voltarPara('tela-historico');
+            // CORREÇÃO: Força a atualização do histórico ao clicar no botão Voltar
+            document.getElementById('btn-voltar-dia').onclick = () => abrirHistorico(moduloAtivo);
             
             let btnRel = document.getElementById('btn-gerar-relatorio');
             btnRel.innerHTML = moduloAtivo === 'vasilhame' 
@@ -475,7 +471,9 @@
             
             document.getElementById('btn-voltar-dia').onclick = () => {
                 containerDet.style.display = 'none'; document.getElementById('lista-resumo-dia').style.display = 'block';
-                document.getElementById('btn-voltar-dia').onclick = () => voltarPara('tela-historico');
+                
+                // CORREÇÃO: Força a atualização do histórico ao voltar desta tela também
+                document.getElementById('btn-voltar-dia').onclick = () => abrirHistorico(moduloAtivo);
             };
 
             let filtrados = registrosDoDiaAtivo.filter(r => (moduloAtivo === 'vasilhame' ? r.vasilhame : r.produto) === nomeProd);
@@ -640,7 +638,6 @@
             mostrarToast("🗑️ Programado para excluir do Servidor.");
         }
 
-        // SOLUÇÃO CRÍTICA 1: Exclusão em Lote não trava mais a sincronização
         async function executarSincronizacao(exibirLoading) {
             if (isSyncing) return "O sistema já está sincronizando."; 
             
@@ -698,6 +695,17 @@
                     
                     if (document.getElementById('tela-dia').style.display !== 'none') renderizarResumoDia();
                     if (!exibirLoading) mostrarToast("🔄 Sincronização em 2º plano concluída!");
+                }
+            } catch(e) {}
+            
+            // CORREÇÃO DOS FANTASMAS: Força o telemóvel a atualizar a memória do Histórico logo após a sincronização
+            try {
+                let resHist = await chamarAPI({ acao: 'buscar_historico', modulo: moduloAtivo });
+                if (resHist.sucesso) {
+                    localStorage.setItem('lince_hist_' + moduloAtivo, JSON.stringify(resHist.historico));
+                    if (document.getElementById('tela-historico').style.display !== 'none') {
+                        renderizarListaHistorico(resHist.historico);
+                    }
                 }
             } catch(e) {}
             
