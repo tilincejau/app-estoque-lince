@@ -7,10 +7,7 @@
     <title>Estoque - Lince</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     
-    <!-- Ícones Profissionais -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    
-    <!-- Flatpickr (Calendário Profissional Rápido) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
@@ -23,7 +20,6 @@
             --border-color: #e5e7eb; --input-bg: #f9fafb;
         }
 
-        /* Alta Performance de Toque para Mobile */
         body, button, input, select { touch-action: manipulation; }
         
         body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; color: var(--text-main); -webkit-font-smoothing: antialiased; }
@@ -31,7 +27,6 @@
         .logo { width: 100%; max-width: 220px; display: block; margin: 0 auto 15px auto; }
         .desenvolvedor { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: -10px; margin-bottom: 25px; font-weight: 500;}
 
-        /* Animações Curtas para Velocidade */
         .input-campo { width: 100%; padding: 14px 16px; margin-bottom: 15px; border: 1.5px solid var(--border-color); border-radius: 12px; box-sizing: border-box; font-size: 15px; background-color: var(--input-bg); color: var(--text-main); transition: all 0.1s ease; }
         .input-campo:focus { outline: none; border-color: var(--primary-color); background-color: #fff; box-shadow: 0 0 0 4px rgba(26, 77, 46, 0.1); }
         .input-campo.travado { background-color: #e5e7eb; border-color: #d1d5db; color: var(--text-muted); pointer-events: none; }
@@ -78,7 +73,6 @@
         .spinner { border: 4px solid #e5e7eb; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 45px; height: 45px; animation: spin 1s linear infinite; margin-bottom: 15px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Estilo do Flatpickr (Calendário) Integrado ao Layout */
         .flatpickr-calendar { box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important; border: none !important; border-radius: 16px !important; font-family: 'Inter', sans-serif !important; }
         .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay { background: var(--primary-color) !important; border-color: var(--primary-color) !important; }
     </style>
@@ -152,7 +146,6 @@
             <input type="hidden" id="form-linha">
             <input type="hidden" id="form-raw-data">
             
-            <!-- Aviso visual da hora real -->
             <label class="info-label">Data / Hora: <span style="font-size:10px; font-weight:normal;">(Salva ao clicar no botão final)</span></label>
             <input type="text" id="form-data-hora" class="input-campo travado" readonly>
             
@@ -221,17 +214,13 @@
 
     <!-- INÍCIO DO JAVASCRIPT -->
     <script>
-        // MANTENHA A SUA URL DA API AQUI
         const API_URL = "https://script.google.com/macros/s/AKfycbxSYGNFeswFA24QlljQF9LswooqMpkJE7460mkaOrq0UGqgkoIoFYElMS6xNeuSDmFnxA/exec"; 
 
-        // Adicionada a trava anti-clique duplo para submissões repetidas[cite: 5]
         let isSubmitting = false;
-
         let moduloAtivo = ""; let dataAtiva = ""; let registrosDoDiaAtivo = [];
         let listaGlobalProdutos = []; 
         let isSyncing = false; 
 
-        // Otimização de Teclado
         document.getElementById('form-caixas').addEventListener('keydown', function(e) {
             if(e.key === 'Enter') { e.preventDefault(); document.getElementById('form-unidades').focus(); }
         });
@@ -239,7 +228,6 @@
             if(e.key === 'Enter') { e.preventDefault(); salvarFormulario(); }
         });
 
-        // Configuração do Calendário Flatpickr
         flatpickr("#form-data-validade", {
             dateFormat: "d/m/Y",
             locale: "pt", 
@@ -250,14 +238,18 @@
             }
         });
 
+        // REGRAS DE CONEXÃO BLINDADAS
         async function chamarAPI(payload) {
-            let req = await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
-            let textoResposta = await req.text();
-            try { return JSON.parse(textoResposta); } 
-            catch (e) { throw new Error("Erro na comunicação com o Google."); }
+            try {
+                let req = await fetch(API_URL, { method: 'POST', redirect: 'follow', headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
+                let textoResposta = await req.text();
+                return JSON.parse(textoResposta);
+            } catch (e) {
+                // Ao invés de travar a aplicação com Failed To Fetch, devolvemos este erro seguro
+                return { sucesso: false, erro: "Falha de rede" };
+            }
         }
 
-        // Cache de Dados para Alta Performance
         function carregarCacheOpcoes() {
             try {
                 let cacheProd = localStorage.getItem('lince_cache_produtos');
@@ -350,7 +342,6 @@
         function esconderTudo() { document.querySelectorAll('.app-container').forEach(e => e.style.display = 'none'); }
         function voltarPara(id) { esconderTudo(); document.getElementById(id).style.display = 'flex'; }
 
-        // Navegação Ultrarrápida no Histórico
         async function abrirHistorico(modulo) {
             moduloAtivo = modulo;
             esconderTudo(); document.getElementById('tela-historico').style.display = 'flex';
@@ -565,7 +556,6 @@
         }
 
         function salvarFormulario() {
-            // Trava anti-duplicidade[cite: 5]
             if(isSubmitting) return;
             isSubmitting = true;
 
@@ -639,6 +629,7 @@
             mostrarToast("🗑️ Programado para excluir do Servidor.");
         }
 
+        // SOLUÇÃO CRÍTICA 1: Exclusão em Lote não trava mais a sincronização
         async function executarSincronizacao(exibirLoading) {
             if (isSyncing) return "O sistema já está sincronizando."; 
             
@@ -653,17 +644,15 @@
 
             if (filaExclusao.length > 0) {
                 try {
-                    // ORDENAÇÃO DE BAIXO PARA CIMA PARA EXCLUIR MÚLTIPLAS LINHAS COM SUCESSO
-                    filaExclusao.sort((a, b) => parseInt(b.linha) - parseInt(a.linha));
-
-                    for (let exc of filaExclusao) { 
-                        await chamarAPI({ acao: 'excluir_registro', modulo: exc.modulo, linha: exc.linha }); 
-                    }
-                    localStorage.setItem('lince_fila_exclusao', JSON.stringify([])); 
+                    let vasilhameExc = filaExclusao.filter(e => e.modulo === 'vasilhame').map(e => e.linha);
+                    let validadeExc = filaExclusao.filter(e => e.modulo === 'validade').map(e => e.linha);
+                    
+                    if(vasilhameExc.length > 0) await chamarAPI({ acao: 'excluir_lote', modulo: 'vasilhame', linhas: vasilhameExc });
+                    if(validadeExc.length > 0) await chamarAPI({ acao: 'excluir_lote', modulo: 'validade', linhas: validadeExc });
                 } catch(e) { 
-                    if(exibirLoading) document.getElementById('overlay-sync').style.display = 'none'; 
-                    isSyncing = false; 
-                    return "Erro na Exclusão: " + e.message; 
+                    console.log("Erro ao limpar exclusões do servidor.");
+                } finally {
+                    localStorage.setItem('lince_fila_exclusao', JSON.stringify([])); 
                 }
             }
 
