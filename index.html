@@ -99,10 +99,6 @@
             <i class="ph ph-bottle" style="font-size: 20px;"></i> Controle de Vasilhame
         </button>
 
-        <!-- NOVO: substitui o antigo "Sincronizar Base TXT" -->
-        <button class="btn-secundario" style="margin-top: 20px; border: 1.5px dashed var(--primary-color); color: var(--primary-color); background: transparent;" onclick="atualizarComodatos()" id="btn-sync-cev">
-            <i class="ph ph-arrows-clockwise" style="font-size: 18px;"></i> Atualizar Comodatos (CEV)
-        </button>
     </div>
 
     <!-- TELA HISTÓRICO -->
@@ -766,26 +762,6 @@
                 executarSincronizacao(false);
             }
         });
-
-        // NOVO: substitui o antigo sincronizarTXT(). Recalcula o CEV do dia
-        // (Total de Comodatos - Pedidos de Recolha em aberto) e grava na aba Hist_CEV.
-        async function atualizarComodatos() {
-            let btn = document.getElementById('btn-sync-cev'); let htmlOriginal = btn.innerHTML;
-            btn.innerHTML = '<i class="ph ph-spinner ph-spin" style="font-size: 18px;"></i> Calculando CEV...'; btn.disabled = true;
-            try {
-                let hj = new Date();
-                let hoje = ("0"+hj.getDate()).slice(-2) + "/" + ("0"+(hj.getMonth()+1)).slice(-2) + "/" + hj.getFullYear();
-                let res = await chamarAPI({ acao: 'atualizar_cev', data: hoje });
-                if (res.sucesso) {
-                    let msg = "✅ " + res.msg;
-                    if (res.naoMapeados && res.naoMapeados.length) {
-                        msg += "\n\n⚠️ Vasilhames sem De-Para (coluna F da aba De_Para):\n- " + res.naoMapeados.join("\n- ");
-                    }
-                    alert(msg);
-                } else alert("❌ Erro: " + res.erro);
-            } catch(e) { alert("❌ Erro de conexão."); }
-            btn.innerHTML = htmlOriginal; btn.disabled = false;
-        }
     </script>
 </body>
 </html>
