@@ -35,7 +35,35 @@
         body { margin: 0; padding: 0; font-family: 'Inter', sans-serif; background-color: var(--bg-color); display: flex; flex-direction: column; align-items: center; color: var(--text-main); -webkit-font-smoothing: antialiased; }
         .app-container { width: 100%; max-width: 420px; padding: 25px 20px; box-sizing: border-box; display: flex; flex-direction: column; }
         .logo { width: 100%; max-width: 220px; display: block; margin: 0 auto 15px auto; }
-        .desenvolvedor { text-align: center; font-size: 11px; color: var(--text-muted); margin-top: -10px; margin-bottom: 25px; font-weight: 500;}
+        /* Tela inicial */
+        .home { min-height: 100vh; min-height: 100dvh; justify-content: space-between; padding-top: 30px; }
+        .home-topo { text-align: center; }
+        .home .logo { max-width: 190px; margin: 0 auto 6px auto; }
+        .home-sub { font-size: 12px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #b08d3c; }
+        .home-data { margin-top: 6px; font-size: 13px; color: var(--text-muted); font-weight: 500; }
+        .home-data::first-letter { text-transform: uppercase; }
+        .home-cards { display: flex; flex-direction: column; gap: 14px; margin: 26px 0; }
+        .mod-card { position: relative; overflow: hidden; display: flex; align-items: center; gap: 14px; padding: 18px 16px; border-radius: 20px; color: #fff; cursor: pointer; transition: transform 0.1s; -webkit-tap-highlight-color: transparent; }
+        .mod-card:active { transform: scale(0.98); }
+        .mod-card::after { content: ""; position: absolute; right: -30px; top: -30px; width: 120px; height: 120px; border-radius: 50%; background: rgba(255,255,255,0.08); }
+        .mod-validade { background: linear-gradient(135deg, #256b40 0%, #1a4d2e 60%, #123a22 100%); box-shadow: 0 10px 24px rgba(26, 77, 46, 0.3); }
+        .mod-vasilhame { background: linear-gradient(135deg, #2b54c9 0%, #1e40af 60%, #1e3a8a 100%); box-shadow: 0 10px 24px rgba(30, 64, 175, 0.28); }
+        .mod-icone { width: 52px; height: 52px; flex-shrink: 0; border-radius: 16px; background: rgba(255,255,255,0.16); display: flex; align-items: center; justify-content: center; font-size: 28px; }
+        .mod-validade .mod-icone { color: #f3d27a; }
+        .mod-vasilhame .mod-icone { color: #bfdbfe; }
+        .mod-txt { flex: 1; min-width: 0; position: relative; z-index: 1; }
+        .mod-titulo { font-size: 16px; font-weight: 700; letter-spacing: -0.2px; }
+        .mod-desc { font-size: 12px; opacity: 0.8; margin-top: 2px; line-height: 1.3; }
+        .mod-status { display: none; margin-top: 8px; font-size: 11.5px; font-weight: 600; background: rgba(255,255,255,0.16); border-radius: 8px; padding: 4px 8px; width: fit-content; max-width: 100%; }
+        .mod-status .mini-barra { display: inline-block; width: 46px; height: 5px; border-radius: 3px; background: rgba(255,255,255,0.25); vertical-align: middle; margin-left: 6px; overflow: hidden; }
+        .mod-status .mini-barra b { display: block; height: 100%; background: #f3d27a; }
+        .mod-seta { font-size: 20px; opacity: 0.7; position: relative; z-index: 1; }
+        .home-rodape { text-align: center; padding-bottom: 6px; }
+        .home-pendentes { background: #fff7ed; color: #b45309; border: 1px solid #fed7aa; border-radius: 12px; padding: 9px 12px; font-size: 12.5px; font-weight: 600; margin-bottom: 12px; }
+        .home-conexao { font-size: 11.5px; color: var(--text-muted); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .home-conexao .dot { width: 8px; height: 8px; border-radius: 50%; background: #10b981; }
+        .home-conexao .dot.off { background: #ef4444; }
+        .home-marca { font-size: 10.5px; color: #9ca3af; margin-top: 4px; letter-spacing: 0.5px; }
 
         .input-campo { width: 100%; padding: 14px 16px; margin-bottom: 15px; border: 1.5px solid var(--border-color); border-radius: 12px; box-sizing: border-box; font-size: 15px; background-color: var(--input-bg); color: var(--text-main); transition: all 0.1s ease; }
         .input-campo:focus { outline: none; border-color: var(--primary-color); background-color: #fff; box-shadow: 0 0 0 4px rgba(26, 77, 46, 0.1); }
@@ -166,18 +194,40 @@
     </div>
 
     <!-- TELA HOME -->
-    <div id="tela-home" class="app-container">
-        <img src="https://i.postimg.cc/x1Dpgf8n/capa-app-logistica-(400-x-400-px)-(2).png" alt="Logo Lince" class="logo">
-        <h2 class="titulo-tela" style="font-size: 20px;">Controle de Estoque</h2>
-        <div class="desenvolvedor">Desenvolvido por João Marcelo Magon Bonini</div>
+    <div id="tela-home" class="app-container home">
+        <div class="home-topo">
+            <img src="https://i.postimg.cc/x1Dpgf8n/capa-app-logistica-(400-x-400-px)-(2).png" alt="Lince Distribuidora" class="logo">
+            <div class="home-sub">Controle de Estoque</div>
+            <div class="home-data" id="home-data"></div>
+        </div>
 
-        <button class="btn-principal" onclick="abrirHistorico('validade')">
-            <i class="ph ph-package" style="font-size: 20px;"></i> Controle de Validade
-        </button>
-        <button class="btn-principal" onclick="abrirHistorico('vasilhame')" style="background: linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%);">
-            <i class="ph ph-bottle" style="font-size: 20px;"></i> Controle de Vasilhame
-        </button>
+        <div class="home-cards">
+            <div class="mod-card mod-validade" onclick="abrirHistorico('validade')">
+                <div class="mod-icone"><i class="ph-fill ph-calendar-check"></i></div>
+                <div class="mod-txt">
+                    <div class="mod-titulo">Controle de Validade</div>
+                    <div class="mod-desc">Contagem de produtos e datas de validade</div>
+                    <div class="mod-status" id="home-status-validade"></div>
+                </div>
+                <i class="ph ph-caret-right mod-seta"></i>
+            </div>
 
+            <div class="mod-card mod-vasilhame" onclick="abrirHistorico('vasilhame')">
+                <div class="mod-icone"><i class="ph-fill ph-beer-bottle"></i></div>
+                <div class="mod-txt">
+                    <div class="mod-titulo">Controle de Vasilhame</div>
+                    <div class="mod-desc">Contagem de vasilhames e relatório em PDF</div>
+                    <div class="mod-status" id="home-status-vasilhame"></div>
+                </div>
+                <i class="ph ph-caret-right mod-seta"></i>
+            </div>
+        </div>
+
+        <div class="home-rodape">
+            <div id="home-pendentes" class="home-pendentes" style="display:none;"></div>
+            <div class="home-conexao"><span id="home-dot" class="dot"></span><span id="home-conexao-txt"></span></div>
+            <div class="home-marca">Lince Distribuidora</div>
+        </div>
     </div>
 
     <!-- TELA HISTÓRICO -->
@@ -408,6 +458,7 @@
             } catch(e) {}
         }
         carregarCacheOpcoes();
+        atualizarHome();
 
         window.onload = async function() {
             try {
@@ -420,6 +471,7 @@
                     localStorage.setItem('lince_cache_produtos_info', JSON.stringify(mapaInfoProdutos));
                     if (document.getElementById('val-escolha').style.display !== 'none') filtrarProdutos();
                     atualizarInfoPalete();
+                    if (document.getElementById('tela-home').style.display !== 'none') atualizarHome();
 
                     let optV = '<option value="">Selecione...</option>';
                     res.vasilhames.forEach(v => { optV += `<option value="${v}">${v}</option>`; });
@@ -660,7 +712,52 @@
         }
 
         function esconderTudo() { document.querySelectorAll('.app-container').forEach(e => e.style.display = 'none'); }
-        function voltarPara(id) { esconderTudo(); document.getElementById(id).style.display = 'flex'; }
+        function voltarPara(id) { esconderTudo(); document.getElementById(id).style.display = 'flex'; if (id === 'tela-home') atualizarHome(); }
+
+        // ================= TELA INICIAL: data, resumo de hoje, pendências e conexão =================
+        function hojeBR() { let h = new Date(); return ("0"+h.getDate()).slice(-2) + "/" + ("0"+(h.getMonth()+1)).slice(-2) + "/" + h.getFullYear(); }
+
+        function atualizarHome() {
+            try {
+                document.getElementById('home-data').innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
+                let hoje = hojeBR();
+
+                // Validade: produtos contados hoje (cache do celular)
+                let regVal = JSON.parse(localStorage.getItem('lince_validade_' + hoje) || "[]");
+                let elV = document.getElementById('home-status-validade');
+                if (regVal.length) {
+                    let nomes = new Set(regVal.map(r => r.produto));
+                    let total = listaGlobalProdutos.length;
+                    let feitos = total ? listaGlobalProdutos.filter(n => nomes.has(n)).length : nomes.size;
+                    let pct = total ? Math.round(feitos * 100 / total) : 0;
+                    elV.innerHTML = total ? `Hoje: ${feitos} de ${total} contados <span class="mini-barra"><b style="width:${pct}%"></b></span>` : `Hoje: ${feitos} produtos contados`;
+                    elV.style.display = 'block';
+                } else { elV.style.display = 'none'; }
+
+                // Vasilhame: lançamentos de hoje
+                let regVas = JSON.parse(localStorage.getItem('lince_vasilhame_' + hoje) || "[]");
+                let elS = document.getElementById('home-status-vasilhame');
+                if (regVas.length) { elS.innerText = `Hoje: ${regVas.length} lançamento(s)`; elS.style.display = 'block'; }
+                else { elS.style.display = 'none'; }
+
+                // Lançamentos salvos só no celular (ainda não enviados)
+                let pend = 0;
+                for (let i = 0; i < localStorage.length; i++) {
+                    let k = localStorage.key(i);
+                    if (!/^lince_(validade|vasilhame)_\d{2}\/\d{2}\/\d{4}$/.test(k)) continue;
+                    try { pend += JSON.parse(localStorage.getItem(k)).filter(r => String(r.linha).startsWith("LOCAL_") || r.editado).length; } catch(e) {}
+                }
+                let elP = document.getElementById('home-pendentes');
+                if (pend) { elP.innerText = `⚠️ ${pend} lançamento(s) salvos só no celular. Abra o dia e toque em Gerar para enviar.`; elP.style.display = 'block'; }
+                else { elP.style.display = 'none'; }
+
+                let on = navigator.onLine;
+                document.getElementById('home-dot').className = 'dot' + (on ? '' : ' off');
+                document.getElementById('home-conexao-txt').innerText = on ? 'Conectado' : 'Sem internet: os lançamentos ficam salvos no celular';
+            } catch(e) {}
+        }
+        window.addEventListener('online', atualizarHome);
+        window.addEventListener('offline', atualizarHome);
 
         async function abrirHistorico(modulo) {
             moduloAtivo = modulo;
