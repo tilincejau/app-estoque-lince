@@ -76,6 +76,29 @@
         .dropdown-item:last-child { border-bottom: none; }
         .dropdown-item:active { background-color: #f0fdf4; color: var(--primary-color); font-weight: 600; }
 
+        /* Menu de marcas / produtos (Validade) */
+        .grade-marcas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 10px; }
+        .marca-tile { background: #fff; border: 1.5px solid var(--border-color); border-radius: 14px; padding: 8px 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; min-height: 92px; transition: transform 0.1s; }
+        .marca-tile:active { transform: scale(0.96); border-color: var(--primary-color); }
+        .marca-tile img { width: 64px; height: 64px; object-fit: contain; }
+        .marca-tile .marca-sigla { width: 64px; height: 64px; border-radius: 50%; background: #e8f0eb; color: var(--primary-color); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; text-align: center; line-height: 1.1; }
+        .marca-tile span { font-size: 10px; font-weight: 600; color: var(--text-muted); text-align: center; line-height: 1.2; }
+        .marca-titulo { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-weight: 700; color: var(--primary-color); font-size: 14px; }
+        .btn-mini { background: #e5e7eb; color: #374151; border: none; border-radius: 10px; padding: 7px 10px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; cursor: pointer; white-space: nowrap; }
+        .prod-item { display: flex; align-items: center; gap: 12px; background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 8px 10px; margin-bottom: 8px; cursor: pointer; }
+        .prod-item:active { background: #f0fdf4; border-color: var(--primary-color); }
+        .prod-item .mini-foto { width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #cbd5e1; font-size: 26px; }
+        .prod-item .mini-foto img { width: 44px; height: 44px; object-fit: contain; }
+        .prod-item .txt { font-size: 13px; line-height: 1.3; }
+        .prod-item .txt small { display: block; color: #1e40af; font-weight: 600; font-size: 11px; }
+        .prod-header { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 15px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); }
+        .prod-foto { width: 72px; height: 96px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #cbd5e1; font-size: 40px; }
+        .prod-foto img { max-width: 72px; max-height: 96px; object-fit: contain; }
+        .prod-codigo { color: #1e40af; font-weight: 600; font-size: 13px; }
+        .prod-nome { font-size: 14px; font-weight: 600; line-height: 1.3; }
+        .prod-info { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+        .grade-qtd { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px; }
+
         #toast { visibility: hidden; min-width: 250px; background-color: #1f2937; color: #fff; text-align: center; border-radius: 30px; padding: 14px; position: fixed; z-index: 10000; left: 50%; bottom: 80px; transform: translateX(-50%); font-size: 14px; font-weight: 600; box-shadow: 0px 8px 20px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 100px; }
 
@@ -183,24 +206,39 @@
             </div>
 
             <div id="campos-validade" style="display: none;">
-                <label class="info-label">Produto: <span style="color:red">*</span></label>
-                <div class="dropdown-container">
-                    <input type="text" id="form-produto-pesquisa" class="input-campo" placeholder="Digite para pesquisar..." autocomplete="off" style="margin-bottom: 0;" onfocus="mostrarDropdown()" oninput="filtrarDropdown()">
-                    <div id="lista-produtos-dropdown" class="dropdown-lista"></div>
+                <!-- PASSO 1: escolher o produto (menu de marcas + pesquisa) -->
+                <div id="val-escolha">
+                    <label class="info-label">Produto: <span style="color:red">*</span></label>
+                    <input type="text" id="form-produto-pesquisa" class="input-campo" placeholder="Pesquisar produto ou código..." autocomplete="off" oninput="filtrarProdutos()">
+                    <div id="val-marca-titulo" class="marca-titulo" style="display:none;">
+                        <button class="btn-mini" onclick="mostrarMarcas()"><i class="ph ph-arrow-left"></i> Marcas</button>
+                        <span id="val-marca-nome"></span>
+                    </div>
+                    <div id="grade-marcas" class="grade-marcas"></div>
+                    <div id="lista-produtos-marca"></div>
                 </div>
                 <input type="hidden" id="form-produto">
 
-                <div id="info-palete" style="font-size:12px; color:var(--text-muted); margin:0 0 6px 2px;"></div>
-                <div style="display: flex; gap: 8px;">
-                    <div style="flex:1;"><label class="info-label">Pallets:</label><input type="number" id="form-pallets" class="input-campo" value="0" min="0" inputmode="numeric" step="1" oninput="calcularPorPallets()"></div>
-                    <div style="flex:1;"><label class="info-label">Lastros: <span id="info-lastro-cheio" style="font-size:10px; font-weight:normal;"></span></label><input type="number" id="form-lastros" class="input-campo" value="0" min="0" inputmode="numeric" step="1" oninput="calcularPorLastros()"></div>
-                </div>
+                <!-- PASSO 2: contagem do produto escolhido -->
+                <div id="val-detalhe" style="display:none;">
+                    <div class="prod-header">
+                        <div class="prod-foto"><img id="prod-foto-img" alt=""><i class="ph ph-package" id="prod-foto-icone"></i></div>
+                        <div style="flex:1; min-width:0;">
+                            <div id="prod-codigo" class="prod-codigo"></div>
+                            <div id="prod-nome" class="prod-nome"></div>
+                            <div id="info-palete" class="prod-info"></div>
+                        </div>
+                        <button class="btn-mini" id="btn-trocar-produto" onclick="trocarProduto()"><i class="ph ph-arrows-left-right"></i> Trocar</button>
+                    </div>
 
-                <div style="display: flex; gap: 8px;">
-                    <div style="flex:1;"><label class="info-label">Qtd. Caixas:</label><input type="number" id="form-caixas" class="input-campo" value="0" oninput="atualizarTotalUnidades()"></div>
-                    <div style="flex:1;"><label class="info-label">Qtd. Unidades: <span id="info-un-total" style="font-size:10px; font-weight:normal;"></span></label><input type="number" id="form-unidades" class="input-campo" value="0" oninput="calcularPorUnidades()"></div>
-                </div>
-                <div id="info-total-unidades" style="font-size:12px; color:var(--text-muted); margin:-8px 0 15px 2px; font-weight:600;"></div>
+                    <div class="grade-qtd">
+                        <div><label class="info-label">Palete(s):</label><input type="number" id="form-pallets" class="input-campo" value="0" min="0" inputmode="numeric" oninput="calcularTotalValidade()"></div>
+                        <div><label class="info-label">Lastro(s):</label><input type="number" id="form-lastros" class="input-campo" value="0" min="0" inputmode="numeric" oninput="calcularTotalValidade()"></div>
+                        <div><label class="info-label">Caixa(s):</label><input type="number" id="form-caixas" class="input-campo" value="0" min="0" inputmode="numeric" oninput="calcularTotalValidade()"></div>
+                        <div><label class="info-label">Avulso(s):</label><input type="number" id="form-unidades" class="input-campo" value="0" min="0" inputmode="numeric" oninput="calcularTotalValidade()"></div>
+                    </div>
+                    <label class="info-label">Total cx/av:</label>
+                    <input type="text" id="form-total-cxav" class="input-campo travado" style="font-weight:700; text-align:center; font-size:18px;" value="0/0" readonly>
 
                 <label class="info-label">Data de Validade: <span style="color:red">*</span></label>
                 <input type="text" id="form-data-validade" class="input-campo" placeholder="Selecione a data..." onchange="calcularDiasRestantes()">
@@ -215,10 +253,14 @@
                         <input type="text" id="form-status" class="input-campo travado" style="font-weight: 700; text-align: center;" readonly>
                     </div>
                 </div>
+                </div>
             </div>
 
             <button class="btn-principal" id="btn-salvar" onclick="salvarFormulario()">
                 <i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento
+            </button>
+            <button class="btn-secundario" id="btn-outro-lote" onclick="salvarFormulario(true)" style="display:none; margin-bottom:0;">
+                <i class="ph ph-plus-circle" style="font-size: 20px;"></i> Salvar e lançar outro lote (outra validade)
             </button>
             <button class="btn-principal" id="btn-excluir" onclick="excluirFormulario()" style="background: #ef4444; margin-top: 10px; display: none;">
                 <i class="ph ph-trash" style="font-size: 20px;"></i> Excluir Lançamento
@@ -230,23 +272,34 @@
     <script>
         const API_URL = "https://script.google.com/macros/s/AKfycbxSYGNFeswFA24QlljQF9LswooqMpkJE7460mkaOrq0UGqgkoIoFYElMS6xNeuSDmFnxA/exec";
 
+        // ===== IMAGENS (mesma hospedagem do index.html) =====
+        // Foto do produto: img/produtos/<código>.png   (ex.: img/produtos/905573.png)
+        // Logo da marca  : img/logos/<nome da coluna Logo>  (ex.: img/logos/logo_amstel.png)
+        const PASTA_FOTOS = "img/produtos/";
+        const PASTA_LOGOS = "img/logos/";
+
         let isSubmitting = false;
         let moduloAtivo = ""; let dataAtiva = ""; let registrosDoDiaAtivo = [];
         let listaGlobalProdutos = [];
-        let mapaInfoProdutos = {}; // { nome: { fator: Qtd/Un, palete: Qtd.Palete Fechado } }
+        let mapaInfoProdutos = {}; // { nome: { fator, palete, lastro, marca, logo } }
         let isSyncing = false;
+        let marcaAberta = null; // marca aberta no menu de produtos (Validade)
 
-        document.getElementById('form-pallets').addEventListener('keydown', function(e) {
-            if(e.key === 'Enter') { e.preventDefault(); let prox = document.getElementById('form-lastros').classList.contains('travado') ? 'form-caixas' : 'form-lastros'; document.getElementById(prox).focus(); document.getElementById(prox).select(); }
+        // Enter pula para o próximo campo: Palete -> Lastro -> Caixa -> Avulso -> Validade
+        ['form-pallets','form-lastros','form-caixas','form-unidades'].forEach((id, i, ordem) => {
+            document.getElementById(id).addEventListener('keydown', function(e) {
+                if (e.key !== 'Enter') return;
+                e.preventDefault();
+                for (let j = i + 1; j < ordem.length; j++) {
+                    let prox = document.getElementById(ordem[j]);
+                    if (!prox.classList.contains('travado')) { prox.focus(); prox.select(); return; }
+                }
+                let fp = document.getElementById('form-data-validade')._flatpickr;
+                if (fp) fp.open();
+            });
         });
-        document.getElementById('form-lastros').addEventListener('keydown', function(e) {
-            if(e.key === 'Enter') { e.preventDefault(); document.getElementById('form-caixas').focus(); document.getElementById('form-caixas').select(); }
-        });
-        document.getElementById('form-caixas').addEventListener('keydown', function(e) {
-            if(e.key === 'Enter') { e.preventDefault(); document.getElementById('form-unidades').focus(); }
-        });
-        document.getElementById('form-unidades').addEventListener('keydown', function(e) {
-            if(e.key === 'Enter') { e.preventDefault(); salvarFormulario(); }
+        document.getElementById('form-produto-pesquisa').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') e.preventDefault();
         });
 
         flatpickr("#form-data-validade", {
@@ -282,7 +335,7 @@
                 let cacheProd = localStorage.getItem('lince_cache_produtos');
                 if(cacheProd) {
                     listaGlobalProdutos = JSON.parse(cacheProd);
-                    renderizarDropdown(listaGlobalProdutos.slice(0, 40));
+                    if (document.getElementById('val-escolha').style.display !== 'none') filtrarProdutos();
                 }
                 let cacheInfo = localStorage.getItem('lince_cache_produtos_info');
                 if(cacheInfo) mapaInfoProdutos = JSON.parse(cacheInfo);
@@ -304,9 +357,9 @@
                     listaGlobalProdutos = res.produtos.map(p => p.nome);
                     localStorage.setItem('lince_cache_produtos', JSON.stringify(listaGlobalProdutos));
                     mapaInfoProdutos = {};
-                    res.produtos.forEach(p => { mapaInfoProdutos[p.nome] = { fator: parseInt(p.fator) || 1, palete: parseInt(p.palete) || 0, lastro: parseInt(p.lastro) || 0 }; });
+                    res.produtos.forEach(p => { mapaInfoProdutos[p.nome] = { fator: parseInt(p.fator) || 1, palete: parseInt(p.palete) || 0, lastro: parseInt(p.lastro) || 0, marca: p.marca || "", logo: p.logo || "" }; });
                     localStorage.setItem('lince_cache_produtos_info', JSON.stringify(mapaInfoProdutos));
-                    renderizarDropdown(listaGlobalProdutos.slice(0, 40));
+                    if (document.getElementById('val-escolha').style.display !== 'none') filtrarProdutos();
                     atualizarInfoPalete();
 
                     let optV = '<option value="">Selecione...</option>';
@@ -345,45 +398,149 @@
             }
         }
 
-        function renderizarDropdown(lista) {
-            let html = '';
-            if(lista.length === 0) html = '<div class="dropdown-item" style="color: #999;">Nenhum produto encontrado</div>';
-            lista.forEach(p => { html += `<div class="dropdown-item" onclick="selecionarProduto('${p}')">${p}</div>`; });
-            document.getElementById('lista-produtos-dropdown').innerHTML = html;
+        // ================= MENU DE MARCAS / PRODUTOS (VALIDADE) =================
+        function escHtml(t) { return String(t == null ? "" : t).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;"); }
+        function escJs(t) { return String(t).replace(/\\/g, "\\\\").replace(/'/g, "\\'"); }
+
+        // "904502 CERV AMSTEL LAGER..." -> { codigo: "904502", nome: "CERV AMSTEL LAGER..." }
+        function separarCodigo(descricao) {
+            let m = String(descricao).trim().match(/^(\d+)\s+(.*)$/);
+            return m ? { codigo: m[1], nome: m[2] } : { codigo: "", nome: String(descricao) };
+        }
+        function urlFoto(descricao) { let c = separarCodigo(descricao).codigo; return c ? PASTA_FOTOS + c + ".png" : ""; }
+
+        // "42-AMSTEL" -> "AMSTEL" | "#N/A"/vazio -> "OUTROS"
+        function nomeMarca(marca) {
+            let m = String(marca || "").trim();
+            if (!m || m.startsWith("#")) return "OUTROS";
+            return m.replace(/^\d+\s*-\s*/, "").trim() || "OUTROS";
         }
 
-        function mostrarDropdown() { document.getElementById('lista-produtos-dropdown').style.display = 'block'; filtrarDropdown(); }
+        // Agrupa pelo Logo (Heineken, Heineken Zero, Heineken Ultimate... ficam separados)
+        function montarGruposMarcas() {
+            let grupos = {};
+            listaGlobalProdutos.forEach(nome => {
+                let info = mapaInfoProdutos[nome] || {};
+                let marca = nomeMarca(info.marca);
+                let chave = info.logo || ("SEM_LOGO_" + marca);
+                if (!grupos[chave]) grupos[chave] = { chave: chave, marca: marca, logo: info.logo || "", produtos: [] };
+                grupos[chave].produtos.push(nome);
+            });
+            return Object.values(grupos).sort((a, b) => {
+                if (a.marca === "OUTROS") return 1; if (b.marca === "OUTROS") return -1;
+                return a.marca.localeCompare(b.marca) || a.chave.localeCompare(b.chave);
+            });
+        }
 
-        function filtrarDropdown() {
-            let termo = document.getElementById('form-produto-pesquisa').value.toLowerCase();
-            let filtrados = listaGlobalProdutos.filter(p => p.toLowerCase().includes(termo));
-            renderizarDropdown(filtrados.slice(0, 40));
+        function apelidoLogo(g) {
+            // "logo_heinekenzero.png" -> "HEINEKENZERO" só para diferenciar marcas com mais de um logo
+            return g.logo ? g.logo.replace(/^logo_/i, "").replace(/\.\w+$/, "").toUpperCase() : g.marca;
+        }
+
+        function mostrarMarcas() {
+            marcaAberta = null;
+            document.getElementById('form-produto-pesquisa').value = "";
+            document.getElementById('val-marca-titulo').style.display = 'none';
+            document.getElementById('lista-produtos-marca').innerHTML = "";
+            let grupos = montarGruposMarcas();
+            let contMarca = {}; grupos.forEach(g => contMarca[g.marca] = (contMarca[g.marca] || 0) + 1);
+            let html = "";
+            grupos.forEach(g => {
+                let rotulo = contMarca[g.marca] > 1 ? apelidoLogo(g) : g.marca;
+                let sigla = `<div class="marca-sigla">${escHtml(g.marca)}</div>`;
+                let visual = g.logo
+                    ? `<img src="${escHtml(PASTA_LOGOS + g.logo)}" alt="" loading="lazy" onerror="this.outerHTML='${escHtml(escJs(sigla))}'">`
+                    : sigla;
+                html += `<div class="marca-tile" onclick="abrirMarca('${escHtml(escJs(g.chave))}')">${visual}<span>${escHtml(rotulo)} (${g.produtos.length})</span></div>`;
+            });
+            if (!grupos.length) html = "<p style='grid-column:1/-1; text-align:center; color:var(--text-muted); font-size:13px;'>Carregando produtos...</p>";
+            let grade = document.getElementById('grade-marcas');
+            grade.innerHTML = html; grade.style.display = 'grid';
+        }
+
+        function abrirMarca(chave) {
+            let g = montarGruposMarcas().find(x => x.chave === chave);
+            if (!g) return;
+            marcaAberta = chave;
+            document.getElementById('grade-marcas').style.display = 'none';
+            document.getElementById('val-marca-titulo').style.display = 'flex';
+            document.getElementById('val-marca-nome').innerText = g.marca;
+            renderizarListaProdutos(g.produtos);
+        }
+
+        function renderizarListaProdutos(lista) {
+            let html = "";
+            if (!lista.length) html = "<p style='text-align:center; color:var(--text-muted); font-size:13px;'>Nenhum produto encontrado.</p>";
+            lista.forEach(nome => {
+                let p = separarCodigo(nome); let foto = urlFoto(nome);
+                let img = foto ? `<img src="${escHtml(foto)}" alt="" loading="lazy" onerror="this.outerHTML='<i class=&quot;ph ph-package&quot;></i>'">` : `<i class="ph ph-package"></i>`;
+                html += `<div class="prod-item" onclick="selecionarProduto('${escHtml(escJs(nome))}')">
+                    <div class="mini-foto">${img}</div>
+                    <div class="txt"><small>${escHtml(p.codigo)}</small>${escHtml(p.nome)}</div>
+                </div>`;
+            });
+            document.getElementById('lista-produtos-marca').innerHTML = html;
+        }
+
+        function filtrarProdutos() {
+            let termo = document.getElementById('form-produto-pesquisa').value.trim().toLowerCase();
+            if (!termo) {
+                if (marcaAberta) abrirMarca(marcaAberta); else mostrarMarcas();
+                return;
+            }
+            document.getElementById('grade-marcas').style.display = 'none';
+            document.getElementById('val-marca-titulo').style.display = 'flex';
+            document.getElementById('val-marca-nome').innerText = "Resultado da pesquisa";
+            marcaAberta = null;
+            let palavras = termo.split(/\s+/);
+            renderizarListaProdutos(listaGlobalProdutos.filter(n => { let t = n.toLowerCase(); return palavras.every(w => t.includes(w)); }).slice(0, 60));
+        }
+
+        function mostrarEscolhaProduto() {
+            document.getElementById('val-escolha').style.display = 'block';
+            document.getElementById('val-detalhe').style.display = 'none';
+            document.getElementById('btn-salvar').style.display = 'none';
+            document.getElementById('btn-outro-lote').style.display = 'none';
+            if (marcaAberta) abrirMarca(marcaAberta); else mostrarMarcas();
+        }
+
+        function mostrarDetalheProduto() {
+            document.getElementById('val-escolha').style.display = 'none';
+            document.getElementById('val-detalhe').style.display = 'block';
+            document.getElementById('btn-salvar').style.display = 'flex';
+            // "outro lote" só aparece em lançamento novo
+            document.getElementById('btn-outro-lote').style.display = document.getElementById('form-linha').value ? 'none' : 'flex';
+        }
+
+        function trocarProduto() { mostrarEscolhaProduto(); }
+
+        function preencherCabecalhoProduto(nome) {
+            let p = separarCodigo(nome);
+            document.getElementById('prod-codigo').innerText = p.codigo;
+            document.getElementById('prod-nome').innerText = p.nome;
+            let img = document.getElementById('prod-foto-img'), ico = document.getElementById('prod-foto-icone');
+            let foto = urlFoto(nome);
+            img.onload = () => { img.style.display = 'block'; ico.style.display = 'none'; };
+            img.onerror = () => { img.style.display = 'none'; ico.style.display = 'block'; };
+            img.style.display = 'none'; ico.style.display = 'block';
+            if (foto) img.src = foto; else img.removeAttribute('src');
         }
 
         function selecionarProduto(nome) {
             document.getElementById('form-produto').value = nome;
-            document.getElementById('form-produto-pesquisa').value = nome;
-            document.getElementById('lista-produtos-dropdown').style.display = 'none';
-            document.getElementById('form-pallets').value = "0";
-            document.getElementById('form-lastros').value = "0";
+            preencherCabecalhoProduto(nome);
+            ['form-pallets','form-lastros','form-caixas','form-unidades'].forEach(id => document.getElementById(id).value = "0");
             atualizarInfoPalete();
-            let info = mapaInfoProdutos[nome];
-            let proximo = (info && (info.palete > 0 || info.lastro > 0)) ? (info.palete > 0 ? 'form-pallets' : 'form-lastros') : 'form-caixas';
-            document.getElementById(proximo).focus(); document.getElementById(proximo).select();
+            mostrarDetalheProduto();
+            let primeiro = ['form-pallets','form-lastros','form-caixas'].find(id => !document.getElementById(id).classList.contains('travado'));
+            let el = document.getElementById(primeiro); el.focus(); el.select();
         }
 
-        // ===== PALLETS / LASTROS =====
-        // Lastros por pallet = Qtd.Palete Fechado / Qtd. Lastro (ex.: 168 / 24 = 7)
-        // Ao digitar Pallets -> Lastros = Pallets x lastros por pallet (todos os lastros, pallet cheio)
-        // O usuário pode alterar os Lastros (pallet incompleto) -> Caixas = Lastros x Qtd. Lastro
-        // Total UN = Caixas x Qtd/Un + Unidades
+        // ================= CÁLCULO: PALETE + LASTRO + CAIXA + AVULSO =================
+        // Total caixas = Palete(s) x Qtd.Palete Fechado + Lastro(s) x Qtd. Lastro + Caixa(s)
+        // Avulsos >= Qtd/Un viram caixa (ex.: 30 avulsos de 24un = +1 cx e 6 av)
         function infoProdutoAtual() {
             return mapaInfoProdutos[document.getElementById('form-produto').value] || null;
-        }
-
-        function lastrosPorPallet(info) {
-            if (!info || !info.palete || !info.lastro) return 0;
-            return info.palete / info.lastro;
         }
 
         function travarCampo(id, travar) {
@@ -393,99 +550,31 @@
 
         function atualizarInfoPalete() {
             let info = infoProdutoAtual();
-            let label = document.getElementById('info-palete');
-            if (!document.getElementById('form-produto').value) {
-                label.innerText = "Selecione o produto para usar Pallets/Lastros.";
-                travarCampo('form-pallets', true); travarCampo('form-lastros', true);
-            } else {
-                let temPalete = info && info.palete > 0;
-                let temLastro = info && info.lastro > 0;
-                travarCampo('form-pallets', !temPalete);
-                travarCampo('form-lastros', !temLastro);
-                let partes = [];
-                if (temPalete) partes.push(`1 pallet = ${info.palete} cx`);
-                if (temPalete && temLastro) partes.push(`${formatarNum(lastrosPorPallet(info))} lastros`);
-                if (temLastro) partes.push(`1 lastro = ${info.lastro} cx`);
-                if (info) partes.push(`${info.fator} un/cx`);
-                if (!temPalete && !temLastro) partes.unshift("Produto sem Qtd. Palete / Lastro cadastrada");
-                label.innerText = partes.join(" • ");
-            }
-            atualizarLabelLastroCheio();
-            atualizarTotalUnidades();
+            let temPalete = !!(info && info.palete > 0), temLastro = !!(info && info.lastro > 0);
+            travarCampo('form-pallets', !temPalete);
+            travarCampo('form-lastros', !temLastro);
+            let partes = [];
+            if (temPalete) partes.push(`1 palete = ${info.palete} cx`);
+            if (temLastro) partes.push(`1 lastro = ${info.lastro} cx`);
+            if (info) partes.push(`1 cx = ${info.fator} un`);
+            document.getElementById('info-palete').innerText = partes.join(" • ");
+            calcularTotalValidade();
         }
 
-        function formatarNum(n) { return Number.isInteger(n) ? String(n) : n.toFixed(1).replace('.', ','); }
-
-        function atualizarLabelLastroCheio() {
-            let info = infoProdutoAtual();
-            let pallets = parseInt(document.getElementById('form-pallets').value) || 0;
-            let lpp = lastrosPorPallet(info);
-            document.getElementById('info-lastro-cheio').innerText = (pallets > 0 && lpp) ? `(cheio: ${formatarNum(pallets * lpp)})` : "";
+        function totaisValidade() {
+            let info = infoProdutoAtual() || { fator: 1, palete: 0, lastro: 0 };
+            let n = id => Math.max(0, parseInt(document.getElementById(id).value) || 0);
+            let cx = n('form-pallets') * (info.palete || 0) + n('form-lastros') * (info.lastro || 0) + n('form-caixas');
+            let av = n('form-unidades');
+            let fator = info.fator || 1;
+            if (fator > 1) { cx += Math.floor(av / fator); av = av % fator; }
+            return { cx: cx, av: av };
         }
 
-        function calcularPorPallets() {
-            let info = infoProdutoAtual();
-            if (!info || !info.palete) return;
-            let pallets = parseInt(document.getElementById('form-pallets').value) || 0;
-            let lpp = lastrosPorPallet(info);
-            if (lpp) {
-                // por padrão vem com todos os lastros
-                document.getElementById('form-lastros').value = Math.round(pallets * lpp);
-            }
-            // pallet cheio: usa a Qtd.Palete Fechado direto (evita arredondamento quando não divide exato)
-            document.getElementById('form-caixas').value = pallets * info.palete;
-            atualizarLabelLastroCheio();
-            atualizarTotalUnidades();
+        function calcularTotalValidade() {
+            let t = totaisValidade();
+            document.getElementById('form-total-cxav').value = `${t.cx}/${t.av}`;
         }
-
-        function calcularPorLastros() {
-            let info = infoProdutoAtual();
-            if (!info || !info.lastro) return;
-            let lastros = parseInt(document.getElementById('form-lastros').value) || 0;
-            let pallets = parseInt(document.getElementById('form-pallets').value) || 0;
-            let lpp = lastrosPorPallet(info);
-            // se o usuário deixou exatamente o número de lastros do pallet cheio, mantém a Qtd.Palete Fechado
-            document.getElementById('form-caixas').value = (pallets > 0 && lpp && lastros === Math.round(pallets * lpp))
-                ? pallets * info.palete
-                : lastros * info.lastro;
-            atualizarTotalUnidades();
-        }
-
-        // Qtd. Unidades = TOTAL em unidades (Caixas x Qtd/Un + unidades avulsas)
-        // Mudou Caixas/Pallets/Lastros -> recalcula Unidades. Mudou Unidades -> recalcula Caixas.
-        // Ao salvar, o total é convertido de volta para Caixas + Unidades avulsas (formato da planilha).
-        function atualizarTotalUnidades() {
-            let info = infoProdutoAtual();
-            if (!info) { atualizarResumoUnidades(); return; }
-            let cx = parseInt(document.getElementById('form-caixas').value) || 0;
-            let avulsas = (parseInt(document.getElementById('form-unidades').value) || 0) % info.fator;
-            document.getElementById('form-unidades').value = cx * info.fator + avulsas;
-            atualizarResumoUnidades();
-        }
-
-        function calcularPorUnidades() {
-            let info = infoProdutoAtual();
-            if (info) {
-                let total = parseInt(document.getElementById('form-unidades').value) || 0;
-                document.getElementById('form-caixas').value = Math.floor(total / info.fator);
-            }
-            atualizarResumoUnidades();
-        }
-
-        function atualizarResumoUnidades() {
-            let div = document.getElementById('info-total-unidades');
-            let info = infoProdutoAtual();
-            document.getElementById('info-un-total').innerText = info ? "(total)" : "";
-            if (!info) { div.innerText = ""; return; }
-            let total = parseInt(document.getElementById('form-unidades').value) || 0;
-            let cx = Math.floor(total / info.fator), av = total % info.fator;
-            div.innerText = total > 0 ? `= ${cx.toLocaleString('pt-BR')} cx fechada(s) + ${av} un avulsa(s)` : "";
-        }
-
-        document.addEventListener('click', function(event) {
-            let input = document.getElementById('form-produto-pesquisa'); let dropdown = document.getElementById('lista-produtos-dropdown');
-            if (input && dropdown && dropdown.style.display === 'block') { if (event.target !== input && !dropdown.contains(event.target)) { dropdown.style.display = 'none'; } }
-        });
 
         function esconderTudo() { document.querySelectorAll('.app-container').forEach(e => e.style.display = 'none'); }
         function voltarPara(id) { esconderTudo(); document.getElementById(id).style.display = 'flex'; }
@@ -659,10 +748,14 @@
                 document.getElementById('form-cilindros').value = r.cilindros || 0;
                 ajustarCamposVasilhame();
             } else {
-                document.getElementById('form-produto').value = r.produto; document.getElementById('form-produto-pesquisa').value = r.produto;
-                document.getElementById('form-caixas').value = r.caixas; document.getElementById('form-unidades').value = r.unidades;
-                document.getElementById('form-pallets').value = "0"; document.getElementById('form-lastros').value = "0";
+                // ao editar, o total salvo aparece em Caixa(s) e Avulso(s) (palete/lastro zerados)
+                document.getElementById('form-produto').value = r.produto;
+                preencherCabecalhoProduto(r.produto);
                 atualizarInfoPalete();
+                document.getElementById('form-pallets').value = "0"; document.getElementById('form-lastros').value = "0";
+                document.getElementById('form-caixas').value = parseInt(r.caixas) || 0; document.getElementById('form-unidades').value = parseInt(r.unidades) || 0;
+                calcularTotalValidade();
+                mostrarDetalheProduto();
                 document.getElementById('form-data-validade')._flatpickr.setDate(r.data_validade);
                 calcularDiasRestantes();
             }
@@ -674,9 +767,11 @@
             document.getElementById('label-usuario').style.display = moduloAtivo === 'vasilhame' ? 'block' : 'none';
             document.getElementById('form-usuario').style.display = moduloAtivo === 'vasilhame' ? 'block' : 'none';
             document.getElementById('campos-validade').style.display = moduloAtivo === 'validade' ? 'block' : 'none';
+            document.getElementById('btn-salvar').style.display = 'flex';
+            document.getElementById('btn-outro-lote').style.display = 'none';
 
             if(!document.getElementById('form-linha').value) {
-                document.getElementById('form-vasilhame').value = ""; document.getElementById('form-produto').value = ""; document.getElementById('form-produto-pesquisa').value = "";
+                document.getElementById('form-vasilhame').value = ""; document.getElementById('form-produto').value = ""; document.getElementById('form-produto-pesquisa').value = ""; marcaAberta = null;
                 document.getElementById('form-usuario').value = "MARIO CELSO DEVIDE";
 
                 let fp = document.getElementById('form-data-validade')._flatpickr;
@@ -688,6 +783,7 @@
                 atualizarInfoPalete();
                 document.getElementById('btn-excluir').style.display = 'none';
                 if (moduloAtivo === 'vasilhame') ajustarCamposVasilhame();
+                if (moduloAtivo === 'validade') mostrarEscolhaProduto();
             } else { document.getElementById('btn-excluir').style.display = 'flex'; }
         }
 
@@ -709,7 +805,7 @@
             setTimeout(function(){ toast.className = toast.className.replace("show", ""); }, 3000);
         }
 
-        function salvarFormulario() {
+        function salvarFormulario(outroLote) {
             if(isSubmitting) return;
             isSubmitting = true;
 
@@ -738,14 +834,10 @@
                 if(!novoRegistro.usuario) { btnSalvar.disabled = false; isSubmitting = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Preencha o Usuário Conferente!"); }
                 if(!novoRegistro.vasilhame) { btnSalvar.disabled = false; isSubmitting = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Preencha o Vasilhame!"); }
             } else {
-                novoRegistro.produto = document.getElementById('form-produto').value; novoRegistro.caixas = document.getElementById('form-caixas').value; novoRegistro.unidades = document.getElementById('form-unidades').value;
-                let infoSalvar = mapaInfoProdutos[novoRegistro.produto];
-                if (infoSalvar) {
-                    // o campo Unidades é o total: grava como Caixas + Unidades avulsas (mesmo formato de antes)
-                    let totalUn = parseInt(novoRegistro.unidades) || 0;
-                    novoRegistro.caixas = String(Math.floor(totalUn / infoSalvar.fator));
-                    novoRegistro.unidades = String(totalUn % infoSalvar.fator);
-                }
+                novoRegistro.produto = document.getElementById('form-produto').value;
+                // grava o Total cx/av: (Palete x Qtd.Palete) + (Lastro x Qtd.Lastro) + Caixas | Avulsos
+                let tot = totaisValidade();
+                novoRegistro.caixas = String(tot.cx); novoRegistro.unidades = String(tot.av);
                 novoRegistro.data_validade = document.getElementById('form-data-validade').value;
 
                 if(!novoRegistro.produto) { btnSalvar.disabled = false; isSubmitting = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento'; return alert("Por favor, selecione um produto!"); }
@@ -760,9 +852,18 @@
             salvarNoCelular();
             btnSalvar.disabled = false; btnSalvar.innerHTML = '<i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento';
 
-            voltarPara('tela-dia');
-            renderizarResumoDia();
-            mostrarToast("💾 Salvo local (Sincronizará sozinho)");
+            if (outroLote === true && moduloAtivo === 'validade') {
+                // mesmo produto, nova validade: limpa as quantidades e a data
+                let prod = novoRegistro.produto;
+                novoRegistroDia();
+                selecionarProduto(prod);
+                renderizarResumoDia();
+                mostrarToast("💾 Lote salvo! Lance a próxima validade.");
+            } else {
+                voltarPara('tela-dia');
+                renderizarResumoDia();
+                mostrarToast("💾 Salvo local (Sincronizará sozinho)");
+            }
             isSubmitting = false;
         }
 
