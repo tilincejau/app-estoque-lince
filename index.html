@@ -99,6 +99,49 @@
         .prod-info { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
         .grade-qtd { display: grid; grid-template-columns: 1fr 1fr; gap: 0 8px; }
 
+        /* Tela do dia (compacta) */
+        .dia-topo { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .dia-titulo { flex: 1; text-align: right; color: var(--primary-color); font-size: 17px; font-weight: 700; margin: 0; }
+        .dia-acoes { display: grid; grid-template-columns: 3fr 2fr; gap: 8px; margin-bottom: 12px; }
+        .dia-acoes .btn-principal { margin: 0; padding: 13px 10px; font-size: 14px; }
+        .btn-add { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%) !important; box-shadow: 0 6px 15px rgba(217, 119, 6, 0.3) !important; }
+        .btn-rel { background: #10b981; box-shadow: 0 4px 10px rgba(16, 185, 129, 0.25) !important; font-size: 13px !important; }
+        .prog-linha { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 5px; }
+        .prog-linha b { color: var(--primary-color); }
+        .prog-barra { height: 8px; background: #e5e7eb; border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+        #prog-fill { height: 100%; width: 0; background: linear-gradient(90deg, #10b981, #1a4d2e); border-radius: 6px; transition: width 0.3s; }
+        .abas { display: grid; grid-template-columns: 1fr 1fr; background: #e5e7eb; border-radius: 12px; padding: 3px; margin-bottom: 8px; }
+        .aba { border: none; background: transparent; padding: 9px; border-radius: 10px; font-size: 13px; font-weight: 600; color: #4b5563; cursor: pointer; }
+        .aba.ativa { background: #fff; color: var(--primary-color); box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+        .filtro-dia { padding: 10px 14px; font-size: 14px; margin-bottom: 10px; }
+        .legenda-dia { font-size: 11px; color: var(--text-muted); margin: 0 2px 6px; display: flex; gap: 12px; }
+        .legenda-dia i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; }
+        .linha-prod { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 7px 10px; margin-bottom: 6px; cursor: pointer; }
+        .linha-prod:active { background: #f0fdf4; }
+        .lp-foto { width: 40px; height: 40px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #cbd5e1; font-size: 24px; position: relative; }
+        .lp-foto img { width: 40px; height: 40px; object-fit: contain; }
+        .lp-cont { position: absolute; top: -6px; right: -8px; min-width: 19px; height: 19px; padding: 0 4px; box-sizing: border-box; border-radius: 10px; background: #10b981; color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+        .lp-cont.pendente { background: #f59e0b; }
+        .lp-txt { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.25; color: var(--text-main); }
+        .lp-txt small { display: block; color: #1e40af; font-weight: 600; font-size: 10.5px; }
+        .lp-txt span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .lp-qtd { text-align: right; flex-shrink: 0; font-size: 13px; font-weight: 700; color: #1e40af; line-height: 1.2; }
+        .lp-qtd small { display: block; font-size: 11px; font-weight: 600; color: var(--text-muted); }
+        .lp-falta { flex-shrink: 0; background: #fff7ed; color: #d97706; border: 1px solid #fed7aa; border-radius: 10px; padding: 6px 9px; font-size: 12px; font-weight: 700; }
+        .linha-prod.faltando { background: #fafafa; }
+        .linha-prod.faltando .lp-foto img { opacity: 0.6; }
+        .det-topo { display: flex; gap: 10px; align-items: center; margin-bottom: 10px; }
+        .det-topo .lp-foto { width: 56px; height: 56px; } .det-topo .lp-foto img { width: 56px; height: 56px; }
+        .det-item { display: flex; align-items: center; gap: 10px; background: #fff; border: 1px solid var(--border-color); border-radius: 12px; padding: 9px 12px; margin-bottom: 6px; cursor: pointer; }
+        .det-item:active { background: #f9fafb; }
+        .chip-val { font-size: 11px; font-weight: 700; border-radius: 8px; padding: 3px 7px; white-space: nowrap; }
+        /* Menu de produtos: já contados */
+        .badge-contado { margin-left: auto; flex-shrink: 0; background: #d1fae5; color: #059669; border-radius: 10px; padding: 4px 8px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+        .marca-tile .marca-prog { font-size: 10px; font-weight: 700; color: #059669; }
+        .marca-tile.completa { border-color: #10b981; background: #f0fdf4; }
+        .prod-contagem { font-size: 11px; font-weight: 700; margin-top: 5px; color: #059669; }
+        .prod-contagem.primeira { color: #d97706; }
+
         #toast { visibility: hidden; min-width: 250px; background-color: #1f2937; color: #fff; text-align: center; border-radius: 30px; padding: 14px; position: fixed; z-index: 10000; left: 50%; bottom: 80px; transform: translateX(-50%); font-size: 14px; font-weight: 600; box-shadow: 0px 8px 20px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s, bottom 0.3s; }
         #toast.show { visibility: visible; opacity: 1; bottom: 100px; }
 
@@ -147,22 +190,34 @@
     </div>
 
     <!-- TELA DIA -->
-    <div id="tela-dia" class="app-container" style="display: none; padding-bottom: 100px;">
-        <button class="btn-secundario" id="btn-voltar-dia" style="padding: 10px; width: 100px; margin-bottom: 10px;" onclick="voltarPara('tela-historico')">
-            <i class="ph ph-arrow-left"></i> Voltar
-        </button>
-        <h2 class="titulo-tela" style="font-size: 18px; margin-bottom: 10px;" id="titulo-dia">Data: --/--/----</h2>
+    <div id="tela-dia" class="app-container" style="display: none; padding-top: 15px; padding-bottom: 40px;">
+        <div class="dia-topo">
+            <button class="btn-mini" id="btn-voltar-dia" onclick="voltarPara('tela-historico')"><i class="ph ph-arrow-left"></i> Voltar</button>
+            <h2 class="dia-titulo" id="titulo-dia">Data: --/--/----</h2>
+        </div>
 
-        <button class="btn-principal" style="background: #10b981; margin-bottom: 20px;" id="btn-gerar-relatorio" onclick="acionarGerarRelatorio()">
-            <i class="ph ph-file-pdf" style="font-size: 20px;"></i> Gerar Relatório
-        </button>
+        <div class="dia-acoes">
+            <button class="btn-principal btn-add" onclick="novoRegistroDia()">
+                <i class="ph ph-plus-circle" style="font-size: 20px;"></i> Adicionar Lançamento
+            </button>
+            <button class="btn-principal btn-rel" id="btn-gerar-relatorio" onclick="acionarGerarRelatorio()">
+                <i class="ph ph-file-xls" style="font-size: 18px;"></i> Gerar Excel
+            </button>
+        </div>
+
+        <!-- Progresso da contagem (só Validade) -->
+        <div id="painel-progresso" style="display:none;">
+            <div class="prog-linha"><span id="prog-texto"></span><b id="prog-pct"></b></div>
+            <div class="prog-barra"><div id="prog-fill"></div></div>
+            <div class="abas">
+                <button id="aba-contados" class="aba ativa" onclick="trocarAbaDia('contados')">Contados</button>
+                <button id="aba-faltam" class="aba" onclick="trocarAbaDia('faltam')">Faltam</button>
+            </div>
+            <input type="text" id="filtro-dia" class="input-campo filtro-dia" placeholder="Filtrar por nome ou código..." autocomplete="off" oninput="renderizarResumoDia()">
+        </div>
 
         <div id="lista-resumo-dia"></div>
         <div id="lista-detalhes-dia" style="display: none;"></div>
-
-        <button class="btn-fixed-bottom" style="background-color: #f59e0b;" onclick="novoRegistroDia()">
-            <i class="ph ph-plus" style="font-size: 20px;"></i> Adicionar Lançamento
-        </button>
     </div>
 
     <!-- TELA FORMULÁRIO -->
@@ -227,6 +282,7 @@
                             <div id="prod-codigo" class="prod-codigo"></div>
                             <div id="prod-nome" class="prod-nome"></div>
                             <div id="info-palete" class="prod-info"></div>
+                            <div id="prod-contagem" class="prod-contagem"></div>
                         </div>
                         <button class="btn-mini" id="btn-trocar-produto" onclick="trocarProduto()"><i class="ph ph-arrows-left-right"></i> Trocar</button>
                     </div>
@@ -260,7 +316,7 @@
                 <i class="ph ph-floppy-disk" style="font-size: 20px;"></i> Salvar Lançamento
             </button>
             <button class="btn-secundario" id="btn-outro-lote" onclick="salvarFormulario(true)" style="display:none; margin-bottom:0;">
-                <i class="ph ph-plus-circle" style="font-size: 20px;"></i> Salvar e lançar outro lote (outra validade)
+                <i class="ph ph-plus-circle" style="font-size: 20px;"></i> Salvar e lançar outra validade
             </button>
             <button class="btn-principal" id="btn-excluir" onclick="excluirFormulario()" style="background: #ef4444; margin-top: 10px; display: none;">
                 <i class="ph ph-trash" style="font-size: 20px;"></i> Excluir Lançamento
@@ -443,6 +499,7 @@
             document.getElementById('val-marca-titulo').style.display = 'none';
             document.getElementById('lista-produtos-marca').innerHTML = "";
             let grupos = montarGruposMarcas();
+            let contados = contagensDoDia();
             let contMarca = {}; grupos.forEach(g => contMarca[g.marca] = (contMarca[g.marca] || 0) + 1);
             let html = "";
             grupos.forEach(g => {
@@ -451,7 +508,10 @@
                 let visual = g.logo
                     ? `<img src="${escHtml(PASTA_LOGOS + g.logo)}" alt="" loading="lazy" onerror="this.outerHTML='${escHtml(escJs(sigla))}'">`
                     : sigla;
-                html += `<div class="marca-tile" onclick="abrirMarca('${escHtml(escJs(g.chave))}')">${visual}<span>${escHtml(rotulo)} (${g.produtos.length})</span></div>`;
+                let feitos = g.produtos.filter(n => contados[n]).length;
+                let completa = feitos === g.produtos.length;
+                html += `<div class="marca-tile ${completa ? 'completa' : ''}" onclick="abrirMarca('${escHtml(escJs(g.chave))}')">${visual}<span>${escHtml(rotulo)}</span>
+                    <span class="marca-prog" style="${feitos ? '' : 'color:var(--text-muted);'}">${completa ? '✓ ' : ''}${feitos}/${g.produtos.length} contados</span></div>`;
             });
             if (!grupos.length) html = "<p style='grid-column:1/-1; text-align:center; color:var(--text-muted); font-size:13px;'>Carregando produtos...</p>";
             let grade = document.getElementById('grade-marcas');
@@ -466,9 +526,11 @@
             document.getElementById('val-marca-titulo').style.display = 'flex';
             document.getElementById('val-marca-nome').innerText = g.marca;
             renderizarListaProdutos(g.produtos);
+            window.scrollTo(0, 0);
         }
 
         function renderizarListaProdutos(lista) {
+            let contados = contagensDoDia();
             let html = "";
             if (!lista.length) html = "<p style='text-align:center; color:var(--text-muted); font-size:13px;'>Nenhum produto encontrado.</p>";
             lista.forEach(nome => {
@@ -477,6 +539,7 @@
                 html += `<div class="prod-item" onclick="selecionarProduto('${escHtml(escJs(nome))}')">
                     <div class="mini-foto">${img}</div>
                     <div class="txt"><small>${escHtml(p.codigo)}</small>${escHtml(p.nome)}</div>
+                    ${contados[nome] ? `<span class="badge-contado" title="Lançamentos hoje">✓ ${contados[nome]}</span>` : ""}
                 </div>`;
             });
             document.getElementById('lista-produtos-marca').innerHTML = html;
@@ -502,6 +565,7 @@
             document.getElementById('btn-salvar').style.display = 'none';
             document.getElementById('btn-outro-lote').style.display = 'none';
             if (marcaAberta) abrirMarca(marcaAberta); else mostrarMarcas();
+            window.scrollTo(0, 0);
         }
 
         function mostrarDetalheProduto() {
@@ -526,9 +590,19 @@
             if (foto) img.src = foto; else img.removeAttribute('src');
         }
 
+        // "1ª contagem" / "3ª contagem deste produto hoje (já contado 2x)"
+        function atualizarContadorForm(nome) {
+            let el = document.getElementById('prod-contagem');
+            let n = contagensDoDia()[nome] || 0;
+            if (document.getElementById('form-linha').value) { el.className = 'prod-contagem'; el.innerText = `Editando lançamento • ${n} lançamento(s) hoje`; return; }
+            el.className = 'prod-contagem' + (n ? '' : ' primeira');
+            el.innerText = n ? `${n + 1}ª contagem deste produto hoje (já contado ${n}x)` : `1ª contagem deste produto hoje`;
+        }
+
         function selecionarProduto(nome) {
             document.getElementById('form-produto').value = nome;
             preencherCabecalhoProduto(nome);
+            atualizarContadorForm(nome);
             ['form-pallets','form-lastros','form-caixas','form-unidades'].forEach(id => document.getElementById(id).value = "0");
             atualizarInfoPalete();
             mostrarDetalheProduto();
@@ -624,13 +698,16 @@
             document.getElementById('btn-voltar-dia').onclick = () => abrirHistorico(moduloAtivo);
 
             let btnRel = document.getElementById('btn-gerar-relatorio');
+            // o botão sincroniza antes de gerar o arquivo
             btnRel.innerHTML = moduloAtivo === 'vasilhame'
-                ? '<i class="ph ph-file-pdf" style="font-size: 20px;"></i> Sincronizar e Gerar PDF'
-                : '<i class="ph ph-file-xls" style="font-size: 20px;"></i> Sincronizar e Gerar Excel';
+                ? '<i class="ph ph-file-pdf" style="font-size: 18px;"></i> Gerar PDF'
+                : '<i class="ph ph-file-xls" style="font-size: 18px;"></i> Gerar Excel';
             btnRel.style.background = moduloAtivo === 'vasilhame' ? "linear-gradient(135deg, #1e40af 0%, #1e3a8a 100%)" : "#10b981";
 
-            document.getElementById('lista-resumo-dia').style.display = 'block';
-            document.getElementById('lista-detalhes-dia').style.display = 'none';
+            abaDia = 'contados';
+            document.getElementById('filtro-dia').value = "";
+            document.getElementById('painel-progresso').style.display = moduloAtivo === 'validade' ? 'block' : 'none';
+            mostrarResumoDia();
             document.getElementById('lista-resumo-dia').innerHTML = "<p style='text-align:center;'>Carregando registros...</p>";
 
             let cacheLocal = localStorage.getItem(`lince_${moduloAtivo}_${dataAtiva}`);
@@ -644,6 +721,7 @@
                     registrosDoDiaAtivo = [...backendDados, ...locaisPendentes];
                     salvarNoCelular();
                     renderizarResumoDia();
+                    atualizarEscolhaSeVisivel();
                 }
             } catch(e) {
                 if (!cacheLocal) document.getElementById('lista-resumo-dia').innerHTML = `<p style='color:red; text-align:center;'>Modo Offline: Sem conexão e sem cache.</p>`;
@@ -651,18 +729,55 @@
             }
         }
 
+        // ================= TELA DO DIA (compacta) =================
+        let abaDia = 'contados';
+        let resumoNomesAtual = [];   // nomes na ordem exibida (clique por índice)
+        let detalheAtual = [];       // registros do produto aberto no detalhe
+        let produtoDetalheAtual = "";
+
+        function nomeDoRegistro(r) { return moduloAtivo === 'vasilhame' ? r.vasilhame : r.produto; }
+        function registroPendente(r) { return String(r.linha).startsWith("LOCAL_") || !!r.editado; }
+
+        // { nome: quantidade de lançamentos no dia }
+        function contagensDoDia() {
+            let mapa = {};
+            registrosDoDiaAtivo.forEach(r => { let n = nomeDoRegistro(r); mapa[n] = (mapa[n] || 0) + 1; });
+            return mapa;
+        }
+
+        function fotoHtml(nome) {
+            if (moduloAtivo === 'vasilhame') return `<i class="ph ph-beer-bottle"></i>`;
+            let foto = urlFoto(nome);
+            return foto ? `<img src="${escHtml(foto)}" alt="" loading="lazy" onerror="this.outerHTML='<i class=&quot;ph ph-package&quot;></i>'">` : `<i class="ph ph-package"></i>`;
+        }
+
+        function fmtNum(n) { return (parseInt(n) || 0).toLocaleString('pt-BR'); }
+
+        function mostrarResumoDia() {
+            document.getElementById('lista-detalhes-dia').style.display = 'none';
+            document.getElementById('lista-resumo-dia').style.display = 'block';
+            if (moduloAtivo === 'validade') document.getElementById('painel-progresso').style.display = 'block';
+            document.getElementById('btn-voltar-dia').onclick = () => abrirHistorico(moduloAtivo);
+        }
+
+        function trocarAbaDia(aba) { abaDia = aba; renderizarResumoDia(); }
+
+        function filtroDiaOk(nome) {
+            let termo = document.getElementById('filtro-dia').value.trim().toLowerCase();
+            if (!termo) return true;
+            let t = String(nome).toLowerCase();
+            return termo.split(/\s+/).every(w => t.includes(w));
+        }
+
         function renderizarResumoDia() {
             let container = document.getElementById('lista-resumo-dia');
-            if(registrosDoDiaAtivo.length === 0) { container.innerHTML = "<p style='text-align:center;'>Nenhum registro para este dia.</p>"; return; }
 
             let resumo = {};
             registrosDoDiaAtivo.forEach(r => {
-                let nome = moduloAtivo === 'vasilhame' ? r.vasilhame : r.produto;
+                let nome = nomeDoRegistro(r);
                 if(!resumo[nome]) resumo[nome] = { nome: nome, cx: 0, un: 0, completas: 0, contagem: 0, pendenteLocal: false };
                 resumo[nome].contagem++;
-
-                if (String(r.linha).startsWith("LOCAL_") || r.editado) resumo[nome].pendenteLocal = true;
-
+                if (registroPendente(r)) resumo[nome].pendenteLocal = true;
                 if(moduloAtivo === 'vasilhame') {
                     resumo[nome].completas += parseInt(r.completas)||0;
                     resumo[nome].cx += (parseInt(r.completas)||0) + (parseInt(r.incompletas)||0) + (parseInt(r.barril)||0) + (parseInt(r.cilindros)||0);
@@ -673,55 +788,138 @@
                 }
             });
 
-            let html = "";
-            for(let key in resumo) {
-                let r = resumo[key];
-                let badgeText = "";
-                let avisoNuvem = r.pendenteLocal ? `<span style="color:#eab308; font-size:11px;">⚠️ Pendente de Envio</span>` : `<span style="color:#10b981; font-size:11px;">✅ Salvo</span>`;
+            // ---- progresso (Validade): produtos ativos contados x faltam ----
+            let faltam = [];
+            if (moduloAtivo === 'validade') {
+                let ativos = listaGlobalProdutos;
+                faltam = ativos.filter(n => !resumo[n]);
+                let contados = ativos.length - faltam.length;
+                let pct = ativos.length ? Math.round(contados * 100 / ativos.length) : 0;
+                document.getElementById('prog-texto').innerText = `${contados} de ${ativos.length} produtos contados`;
+                document.getElementById('prog-pct').innerText = pct + "%";
+                document.getElementById('prog-fill').style.width = pct + "%";
+                document.getElementById('aba-contados').innerText = `Contados (${Object.keys(resumo).length})`;
+                document.getElementById('aba-faltam').innerText = `Faltam (${faltam.length})`;
+                document.getElementById('aba-contados').classList.toggle('ativa', abaDia === 'contados');
+                document.getElementById('aba-faltam').classList.toggle('ativa', abaDia === 'faltam');
+            }
 
+            // ---- aba FALTAM ----
+            if (moduloAtivo === 'validade' && abaDia === 'faltam') {
+                let lista = faltam.filter(filtroDiaOk).sort((a, b) =>
+                    nomeMarca((mapaInfoProdutos[a]||{}).marca).localeCompare(nomeMarca((mapaInfoProdutos[b]||{}).marca)) || a.localeCompare(b));
+                resumoNomesAtual = lista;
+                if (!faltam.length) { container.innerHTML = "<p style='text-align:center; color:#059669; font-weight:700;'>🎉 Todos os produtos foram contados!</p>"; return; }
+                let html = "";
+                lista.forEach((nome, i) => {
+                    let p = separarCodigo(nome);
+                    html += `<div class="linha-prod faltando" onclick="contarProdutoFaltante(${i})">
+                        <div class="lp-foto">${fotoHtml(nome)}</div>
+                        <div class="lp-txt"><small>${escHtml(p.codigo)}</small><span>${escHtml(p.nome)}</span></div>
+                        <div class="lp-falta"><i class="ph ph-plus"></i> Contar</div>
+                    </div>`;
+                });
+                container.innerHTML = html || "<p style='text-align:center; color:var(--text-muted);'>Nenhum produto encontrado.</p>";
+                return;
+            }
+
+            // ---- aba CONTADOS (ou Vasilhame) ----
+            if(registrosDoDiaAtivo.length === 0) { container.innerHTML = "<p style='text-align:center; color:var(--text-muted);'>Nenhum registro para este dia.</p>"; resumoNomesAtual = []; return; }
+
+            let itens = Object.values(resumo).filter(r => filtroDiaOk(r.nome)).sort((a, b) => a.nome.localeCompare(b.nome));
+            resumoNomesAtual = itens.map(r => r.nome);
+            let html = `<div class="legenda-dia"><span><i style="background:#10b981"></i>salvo</span><span><i style="background:#f59e0b"></i>pendente de envio</span><span>nº = lançamentos</span></div>`;
+            itens.forEach((r, i) => {
+                let p = moduloAtivo === 'vasilhame' ? { codigo: "", nome: r.nome } : separarCodigo(r.nome);
+                let qtd;
                 if(moduloAtivo === 'vasilhame') {
                     let cap = 24; let nUp = r.nome.toUpperCase();
                     if(nUp.includes("1L")) cap = 12;
                     if(nUp.includes("CILINDRO") || nUp.includes("BARRIL") || nUp.includes("GARRAFA")) cap = 0;
-                    let totalGf = (r.completas * cap) + r.un;
-                    badgeText = `${r.cx} CX | ${totalGf} GF`;
-                } else { badgeText = `${r.cx} CX | ${r.un} UN`; }
-
-                html += `<div class="hist-card" onclick="abrirDetalheProduto('${r.nome}')" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div><strong style="color:var(--primary-color); font-size:14px;">${r.nome}</strong><br><span style="font-size:12px; color:var(--text-muted);">${r.contagem} lançamento(s)</span><br>${avisoNuvem}</div>
-                    <div class="hist-badge" style="text-align:right;">TOTAL<br><span class="hist-badge-num">${badgeText}</span></div>
+                    qtd = `${fmtNum(r.cx)} cx<small>${fmtNum((r.completas * cap) + r.un)} gf</small>`;
+                } else { qtd = `${fmtNum(r.cx)} cx<small>${fmtNum(r.un)} un</small>`; }
+                html += `<div class="linha-prod" onclick="abrirDetalheProduto(${i})">
+                    <div class="lp-foto">${fotoHtml(r.nome)}<div class="lp-cont ${r.pendenteLocal ? 'pendente' : ''}">${r.contagem}</div></div>
+                    <div class="lp-txt">${p.codigo ? `<small>${escHtml(p.codigo)}</small>` : ""}<span>${escHtml(p.nome)}</span></div>
+                    <div class="lp-qtd">${qtd}</div>
                 </div>`;
-            }
+            });
+            if (!itens.length) html += "<p style='text-align:center; color:var(--text-muted);'>Nenhum produto encontrado.</p>";
             container.innerHTML = html;
         }
 
-        function abrirDetalheProduto(nomeProd) {
+        function contarProdutoFaltante(i) {
+            let nome = resumoNomesAtual[i]; if (!nome) return;
+            novoRegistroDia(); selecionarProduto(nome);
+        }
+
+        function statusValidade(dataBR) {
+            let p = String(dataBR || "").split('/');
+            if (p.length !== 3) return { dias: null, txt: "", bg: "#f3f4f6", cor: "#6b7280" };
+            let v = new Date(p[2], p[1]-1, p[0]); let h = new Date(); h.setHours(0,0,0,0);
+            let d = Math.ceil((v - h) / 86400000);
+            if (d < 0) return { dias: d, txt: "VENCIDO", bg: "#7f1d1d", cor: "#fff" };
+            if (d <= 45) return { dias: d, txt: d + " dias", bg: "#fee2e2", cor: "#dc2626" };
+            if (d < 60) return { dias: d, txt: d + " dias", bg: "#fef3c7", cor: "#d97706" };
+            return { dias: d, txt: d + " dias", bg: "#d1fae5", cor: "#059669" };
+        }
+
+        function abrirDetalheProduto(i) {
+            let nomeProd = typeof i === 'number' ? resumoNomesAtual[i] : i;
+            if (!nomeProd) return;
+            produtoDetalheAtual = nomeProd;
             document.getElementById('lista-resumo-dia').style.display = 'none';
+            document.getElementById('painel-progresso').style.display = 'none';
             let containerDet = document.getElementById('lista-detalhes-dia');
             containerDet.style.display = 'block';
+            document.getElementById('btn-voltar-dia').onclick = () => { mostrarResumoDia(); renderizarResumoDia(); };
 
-            document.getElementById('btn-voltar-dia').onclick = () => {
-                containerDet.style.display = 'none'; document.getElementById('lista-resumo-dia').style.display = 'block';
+            detalheAtual = registrosDoDiaAtivo.filter(r => nomeDoRegistro(r) === nomeProd);
+            if (moduloAtivo === 'validade') {
+                let chave = r => { let p = String(r.data_validade||"").split('/'); return p.length === 3 ? p[2]+p[1]+p[0] : "99999999"; };
+                detalheAtual.sort((a, b) => chave(a).localeCompare(chave(b)));
+            }
+            let p = moduloAtivo === 'vasilhame' ? { codigo: "", nome: nomeProd } : separarCodigo(nomeProd);
+            let totCx = 0, totUn = 0;
+            detalheAtual.forEach(r => { if (moduloAtivo === 'validade') { totCx += parseInt(r.caixas)||0; totUn += parseInt(r.unidades)||0; } });
 
-                // CORREÇÃO: Força a atualização do histórico ao voltar desta tela também
-                document.getElementById('btn-voltar-dia').onclick = () => abrirHistorico(moduloAtivo);
-            };
-
-            let filtrados = registrosDoDiaAtivo.filter(r => (moduloAtivo === 'vasilhame' ? r.vasilhame : r.produto) === nomeProd);
-            let html = `<h3 style="font-size:14px; color:var(--primary-color); border-bottom: 1px solid var(--border-color); padding-bottom:8px; margin-bottom:12px;">${nomeProd}</h3>`;
-
-            filtrados.forEach(r => {
-                let statusLoc = (String(r.linha).startsWith("LOCAL_") || r.editado) ? "⚠️" : "✅";
-                let horaExibicao = r.data_hora ? r.data_hora.split(' ')[1] : "";
-                let info = moduloAtivo === 'vasilhame'
-                    ? `<b>Hora: ${horaExibicao} ${statusLoc}</b> - ${r.local}<br><span style="font-size:12px;color:#666;">C/Comp: ${r.completas} | C/Incomp: ${r.incompletas} | Cilind: ${r.cilindros} | AV: ${r.avulsas}</span>`
-                    : `<b>Hora: ${horaExibicao} ${statusLoc}</b><br><span style="font-size:12px;color:#666;">Val: ${r.data_validade} - CX: ${r.caixas} | UN: ${r.unidades}</span>`;
-
-                html += `<div class="hist-item" onclick='editarRegistro(${JSON.stringify(r)})'>
-                    <div>${info}</div><div style="color:var(--primary-color); font-weight:600; font-size:13px;"><i class="ph ph-pencil-simple"></i> Editar</div>
+            let html = `<div class="det-topo">
+                    <div class="lp-foto">${fotoHtml(nomeProd)}</div>
+                    <div class="lp-txt">${p.codigo ? `<small>${escHtml(p.codigo)}</small>` : ""}<b style="font-size:13px;">${escHtml(p.nome)}</b>
+                        <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">${detalheAtual.length} lançamento(s)${moduloAtivo === 'validade' ? ` • total ${fmtNum(totCx)} cx | ${fmtNum(totUn)} un` : ""}</div></div>
                 </div>`;
+            if (moduloAtivo === 'validade') {
+                html += `<button class="btn-secundario" style="margin-bottom:10px; padding:11px;" onclick="contarMaisDoDetalhe()"><i class="ph ph-plus-circle" style="font-size:18px;"></i> Lançar outra validade deste produto</button>`;
+            }
+
+            detalheAtual.forEach((r, idx) => {
+                let statusLoc = registroPendente(r) ? `<span title="Pendente de envio" style="color:#d97706;">⚠️</span>` : `<span title="Salvo" style="color:#10b981;">✅</span>`;
+                let hora = r.data_hora ? (String(r.data_hora).split(' ')[1] || "") : "";
+                let info;
+                if (moduloAtivo === 'vasilhame') {
+                    info = `<div style="flex:1; font-size:12.5px;"><b>${escHtml(r.local)}</b> <span style="color:var(--text-muted); font-size:11px;">${hora}</span> ${statusLoc}<br>
+                        <span style="font-size:12px;color:#555;">Comp: ${r.completas} | Incomp: ${r.incompletas} | Cilind: ${r.cilindros || 0} | AV: ${r.avulsas}</span></div>`;
+                } else {
+                    let st = statusValidade(r.data_validade);
+                    info = `<div style="flex:1; font-size:12.5px;"><b>Val. ${escHtml(r.data_validade)}</b> <span class="chip-val" style="background:${st.bg}; color:${st.cor};">${st.txt}</span><br>
+                        <span style="font-size:11px; color:var(--text-muted);">${hora} ${statusLoc}</span></div>
+                        <div class="lp-qtd">${fmtNum(r.caixas)} cx<small>${fmtNum(r.unidades)} un</small></div>`;
+                }
+                html += `<div class="det-item" onclick="editarRegistro(detalheAtual[${idx}])">${info}<i class="ph ph-pencil-simple" style="color:var(--primary-color); font-size:18px;"></i></div>`;
             });
             containerDet.innerHTML = html;
+            window.scrollTo(0, 0);
+        }
+
+        function contarMaisDoDetalhe() {
+            let nome = produtoDetalheAtual;
+            novoRegistroDia(); selecionarProduto(nome);
+        }
+
+        // Atualiza o menu de produtos/marcas (badges de contados) se o formulário estiver nessa etapa
+        function atualizarEscolhaSeVisivel() {
+            let esc = document.getElementById('val-escolha');
+            if (moduloAtivo === 'validade' && document.getElementById('tela-form').style.display !== 'none' && esc.style.display !== 'none') filtrarProdutos();
         }
 
         function novaContagem() {
@@ -751,6 +949,7 @@
                 // ao editar, o total salvo aparece em Caixa(s) e Avulso(s) (palete/lastro zerados)
                 document.getElementById('form-produto').value = r.produto;
                 preencherCabecalhoProduto(r.produto);
+                atualizarContadorForm(r.produto);
                 atualizarInfoPalete();
                 document.getElementById('form-pallets').value = "0"; document.getElementById('form-lastros').value = "0";
                 document.getElementById('form-caixas').value = parseInt(r.caixas) || 0; document.getElementById('form-unidades').value = parseInt(r.unidades) || 0;
@@ -861,6 +1060,9 @@
                 mostrarToast("💾 Lote salvo! Lance a próxima validade.");
             } else {
                 voltarPara('tela-dia');
+                if (document.getElementById('lista-detalhes-dia').style.display !== 'none' && produtoDetalheAtual) {
+                    abrirDetalheProduto(produtoDetalheAtual);   // atualiza o detalhe aberto
+                } else { mostrarResumoDia(); }
                 renderizarResumoDia();
                 mostrarToast("💾 Salvo local (Sincronizará sozinho)");
             }
@@ -876,8 +1078,7 @@
             salvarNoCelular();
 
             voltarPara('tela-dia');
-            document.getElementById('lista-detalhes-dia').style.display = 'none';
-            document.getElementById('lista-resumo-dia').style.display = 'block';
+            mostrarResumoDia();
             renderizarResumoDia();
 
             if (String(linha).startsWith("LOCAL_")) {
