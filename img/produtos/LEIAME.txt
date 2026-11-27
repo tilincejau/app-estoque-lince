@@ -1,0 +1,2 @@
+Fotos dos produtos.
+O nome do arquivo deve ser o codigo do produto + .png (ex.: 905573.png).

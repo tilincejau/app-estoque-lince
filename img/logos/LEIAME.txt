@@ -1,0 +1,2 @@
+Logos das marcas.
+O nome do arquivo deve ser igual a coluna "Logo" da aba Produtos (ex.: logo_amstel.png).
